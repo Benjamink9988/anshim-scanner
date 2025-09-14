@@ -23,7 +23,7 @@ export const translations = {
     userManualSections: [
       {
         title: '1. Getting Started',
-        content: "When you first launch the app, you'll see the initial screen for scanning product labels. You can select your preferred language (Korean/English) in the top-right corner.\n\n※ Important: Before use, you must set your Gemini API key in the browser's developer tools as instructed in the project's README file."
+        content: "When you first launch the app, you'll see the initial screen for scanning product labels. You can select your preferred language (Korean/English) in the top-right corner."
       },
       {
         title: '2. Scanning and Analyzing a Product Label',
@@ -142,7 +142,7 @@ export const translations = {
     userManualSections: [
       {
         title: '1. 시작하기',
-        content: "앱을 처음 실행하면 제품 라벨을 스캔할 수 있는 초기 화면이 나타납니다. 우측 상단에서 언어(한국어/영어)를 선택할 수 있습니다.\n\n※ 중요: 앱을 사용하려면 프로젝트 README 파일의 안내에 따라 브라우저 개발자 도구에서 Gemini API 키를 먼저 설정해야 합니다."
+        content: "앱을 처음 실행하면 제품 라벨을 스캔할 수 있는 초기 화면이 나타납니다. 우측 상단에서 언어(한국어/영어)를 선택할 수 있습니다."
       },
       {
         title: '2. 제품 라벨 스캔 및 분석',

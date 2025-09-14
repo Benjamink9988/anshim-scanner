@@ -32,11 +32,6 @@
 
 1.  프로젝트 파일을 다운로드합니다.
 2.  `index.html` 파일을 웹 브라우저(Chrome, Edge 권장)에서 엽니다.
-3.  앱이 정상적으로 실행되기 위해서는 Google Gemini API 키가 필요합니다. **공모전 규정에 따라 민감 정보인 API 키는 소스코드에 포함하여 제출하지 않았습니다.** 따라서, 아래와 같이 웹 브라우저의 개발자 도구(F12) 콘솔에서 직접 API 키를 설정해주셔야 합니다:
-    ```javascript
-    process = { env: { API_KEY: 'YOUR_GEMINI_API_KEY' } };
-    ```
-    **주의**: `YOUR_GEMINI_API_KEY` 부분을 실제 발급받은 키로 교체해야 합니다. 이 키는 현재 브라우저 세션에서만 유효하며, 페이지를 새로고침하면 다시 설정해야 합니다.
 
 ---
 
@@ -47,8 +42,6 @@
 ### 1. 시작하기
 
 앱을 처음 실행하면 제품 라벨을 스캔할 수 있는 초기 화면이 나타납니다. 우측 상단에서 언어(한국어/영어)를 선택할 수 있습니다.
-
-**※ 중요**: 앱을 사용하려면 [실행 방법](#실행-방법) 섹션의 안내에 따라 브라우저 개발자 도구에서 Gemini API 키를 먼저 설정해야 합니다.
 
 ### 2. 제품 라벨 스캔 및 분석
 
@@ -123,11 +116,6 @@ This project uses only open-source licensed technologies to comply with contest 
 
 1.  Download the project files.
 2.  Open the `index.html` file in a web browser (Chrome or Edge recommended).
-3.  To run the app, a Google Gemini API key is required. **In compliance with competition rules, the sensitive API key is not included in the source code.** Therefore, you must set it manually in your browser's developer tools (F12) console by executing the following command:
-    ```javascript
-    process = { env: { API_KEY: 'YOUR_GEMINI_API_KEY' } };
-    ```
-    **Note**: You must replace `YOUR_GEMINI_API_KEY` with your actual API key. This key is only valid for the current session and will need to be set again if you refresh the page.
 
 ---
 
@@ -138,8 +126,6 @@ This project uses only open-source licensed technologies to comply with contest 
 ### 1. Getting Started
 
 When you first launch the app, you will see the initial screen for scanning product labels. You can select your preferred language (Korean/English) in the top-right corner.
-
-**※ Important**: Before using the app, you must first set your Gemini API key in the browser's developer tools as instructed in the [How to Run](#how-to-run) section.
 
 ### 2. Scanning and Analyzing a Product Label
 

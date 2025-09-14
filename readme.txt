@@ -28,11 +28,6 @@
 --------------------------------------------------
 1. 프로젝트 파일을 다운로드합니다.
 2. 시작 파일인 index.html 파일을 웹 브라우저(Chrome, Edge 권장)에서 엽니다.
-3. 앱이 정상적으로 실행되기 위해서는 Google Gemini API 키가 필요합니다. 공모전 규정에 따라 민감 정보인 API 키는 소스코드에 포함하여 제출하지 않았습니다. 따라서, 아래와 같이 웹 브라우저의 개발자 도구(F12) 콘솔에서 직접 API 키를 설정해주셔야 합니다:
-
-   process = { env: { API_KEY: 'YOUR_GEMINI_API_KEY' } };
-
-   **주의**: 'YOUR_GEMINI_API_KEY' 부분을 실제 발급받은 키로 교체해야 합니다. 이 키는 현재 브라우저 세션에서만 유효하며, 페이지를 새로고침하면 다시 설정해야 합니다.
 
 --------------------------------------------------
 ### 사용자 매뉴얼
@@ -41,7 +36,6 @@
 
 1. 시작하기
 - 앱을 처음 실행하면 제품 라벨을 스캔할 수 있는 초기 화면이 나타납니다. 우측 상단에서 언어(한국어/영어)를 선택할 수 있습니다.
-- ※ 중요: 앱을 사용하려면 '실행 방법' 섹션의 안내에 따라 브라우저 개발자 도구에서 Gemini API 키를 먼저 설정해야 합니다.
 
 2. 제품 라벨 스캔 및 분석
 - 이미지 준비: 분석할 제품의 성분 목록이 잘 보이도록 선명하고 밝은 사진을 준비합니다. 성분 목록이 길 경우, 여러 장을 촬영해도 좋습니다.
@@ -75,9 +69,6 @@ Description: A web application that leverages Google Gemini AI to analyze the sa
 How to Run:
 1. Download the project files.
 2. Open index.html in a modern web browser (Chrome recommended).
-3. Set your Google Gemini API key. In compliance with competition rules, the API key is not included in the source code. Run the following command in the browser's developer console (F12):
-   process = { env: { API_KEY: 'YOUR_GEMINI_API_KEY' } };
-   (Note: Replace 'YOUR_GEMINI_API_KEY' with your actual key. This key is session-based and must be set again on page refresh.)
 
 User Manual:
 For detailed instructions, please see our User Guide in the section above or in README.md.
