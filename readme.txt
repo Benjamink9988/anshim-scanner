@@ -1,0 +1,86 @@
+## 안심 스캐너 (Anshim Scanner) ##
+
+'안심 스캐너'는 Google Gemini AI를 활용하여 생활화학제품의 안전성과 환경 영향을 분석해주는 웹 애플리케이션입니다. 제품의 성분표 라벨을 스캔하여 사용자가 정보에 기반한 현명한 결정을 내릴 수 있도록 돕고, 모두가 안심하고 제품을 사용할 수 있는 환경을 만드는 것을 목표로 합니다.
+
+'안심 (Anshim)'은 한국어로 '마음이 편안하고 걱정이 없는 상태'를 의미합니다. '안심 스캐너'라는 이름은 "이 앱으로 제품을 스캔하여 안전성을 확인하고, 걱정 없이 안심하고 사용하세요"라는 핵심 가치를 전달합니다.
+
+--------------------------------------------------
+### 주요 기능
+--------------------------------------------------
+- AI 기반 종합 분석: Gemini AI를 통해 제품의 안전성 점수, 등급, 성분별 위험도, 환경 영향 점수 등을 포함한 상세한 보고서를 생성합니다.
+- 성분 스캔 (OCR): 스마트폰 카메라로 촬영한 성분표 이미지에서 텍스트를 자동 추출하여 분석합니다.
+- 취약 계층 맞춤 분석: 영유아, 임산부 등 특정 그룹에 대한 위험도를 재평가하는 심층 분석 기능을 제공합니다.
+- 실용적인 가이드 제공: 위험 등급이 높은 제품의 경우, 위험을 최소화할 수 있는 '안전 사용 가이드'와 '안전한 폐기 방법'을 안내합니다.
+- 다국어 지원: 한국어와 영어를 모두 지원합니다.
+- 결과 공유 및 저장: 분석 결과를 텍스트, JPG 등 다양한 형식으로 복사, 공유, 저장할 수 있습니다.
+
+--------------------------------------------------
+### 기술 스택 및 라이선스
+--------------------------------------------------
+본 프로젝트는 공모전 규정을 준수하기 위해 오픈소스 라이선스를 가진 기술만을 사용했습니다.
+- Frontend: React 19, Tailwind CSS (MIT License)
+- AI API: Google Gemini (`gemini-2.5-flash` via `@google/genai`) (Apache 2.0 License)
+- Icons: Lucide (ISC License) 기반의 커스텀 아이콘
+- Language: TypeScript
+
+--------------------------------------------------
+### 실행 방법
+--------------------------------------------------
+1. 프로젝트 파일을 다운로드합니다.
+2. 시작 파일인 index.html 파일을 웹 브라우저(Chrome, Edge 권장)에서 엽니다.
+3. 앱이 정상적으로 실행되기 위해서는 Google Gemini API 키가 필요합니다. 공모전 규정에 따라 민감 정보인 API 키는 소스코드에 포함하여 제출하지 않았습니다. 따라서, 아래와 같이 웹 브라우저의 개발자 도구(F12) 콘솔에서 직접 API 키를 설정해주셔야 합니다:
+
+   process = { env: { API_KEY: 'YOUR_GEMINI_API_KEY' } };
+
+   **주의**: 'YOUR_GEMINI_API_KEY' 부분을 실제 발급받은 키로 교체해야 합니다. 이 키는 현재 브라우저 세션에서만 유효하며, 페이지를 새로고침하면 다시 설정해야 합니다.
+
+--------------------------------------------------
+### 사용자 매뉴얼
+--------------------------------------------------
+'안심 스캐너'는 누구나 쉽게 사용할 수 있도록 직관적으로 설계되었습니다. 아래의 간단한 안내를 따라 제품 분석을 시작해보세요.
+
+1. 시작하기
+- 앱을 처음 실행하면 제품 라벨을 스캔할 수 있는 초기 화면이 나타납니다. 우측 상단에서 언어(한국어/영어)를 선택할 수 있습니다.
+- ※ 중요: 앱을 사용하려면 '실행 방법' 섹션의 안내에 따라 브라우저 개발자 도구에서 Gemini API 키를 먼저 설정해야 합니다.
+
+2. 제품 라벨 스캔 및 분석
+- 이미지 준비: 분석할 제품의 성분 목록이 잘 보이도록 선명하고 밝은 사진을 준비합니다. 성분 목록이 길 경우, 여러 장을 촬영해도 좋습니다.
+- 이미지 업로드: '이미지 업로드' 버튼으로 저장된 사진을 선택하거나, '사진 찍기' 버튼으로 직접 촬영합니다.
+- 미리보기 확인: 업로드한 이미지를 확인하고, 잘못된 이미지는 'X' 버튼을 눌러 삭제합니다.
+- 분석 시작: 하단의 'N개 이미지 분석' 버튼을 클릭하여 AI 분석을 시작합니다.
+
+3. 분석 결과 확인하기
+- 주요 분석 결과: 제품의 '안전 등급'과 '환경 등급'을 점수와 요약 설명으로 한눈에 파악합니다.
+- 취약 계층 분석: '영유아', '임산부' 등 특정 그룹 버튼을 클릭하여 해당 그룹에 맞춤화된 분석 결과를 확인합니다.
+- 상세 정보: '안전 사용 가이드', '성분 심층 분석', '환경 영향' 등 카드별 상세 내용을 확인합니다.
+
+4. 결과 활용 및 새로 시작하기
+- 결과 저장/공유: 화면 하단 메뉴에서 '텍스트 복사', 'JPG로 저장', 'TXT로 저장' 기능을 사용할 수 있습니다.
+- 새로 시작하기: '다른 제품 스캔하기' 버튼을 눌러 초기 화면으로 돌아갑니다.
+
+--------------------------------------------------
+### 법적 고지 (Legal Disclaimer)
+--------------------------------------------------
+- 정보 제공 목적: '안심 스캐너'가 제공하는 모든 분석 결과는 Google Gemini AI를 통해 생성된 정보이며, 참고용으로만 제공됩니다.
+- 전문가 조언 대체 불가: 본 앱의 정보는 의학적, 법률적 또는 기타 전문적인 조언을 대체할 수 없습니다. 제품 사용과 관련된 건강상의 우려가 있는 경우, 반드시 의사나 전문가와 상담하시기 바랍니다.
+- 책임의 한계: AI 분석에는 오류나 부정확성이 포함될 수 있습니다. 사용자는 제공된 정보를 바탕으로 내린 모든 결정에 대해 스스로 책임을 져야 하며, 개발팀은 이로 인해 발생하는 어떠한 직간접적인 손해에 대해서도 책임을 지지 않습니다.
+
+--------------------------------------------------
+### English Summary
+--------------------------------------------------
+Project Name: Anshim Scanner
+
+Description: A web application that leverages Google Gemini AI to analyze the safety and environmental impact of household chemical products. The name 'Anshim' is Korean for "peace of mind."
+
+How to Run:
+1. Download the project files.
+2. Open index.html in a modern web browser (Chrome recommended).
+3. Set your Google Gemini API key. In compliance with competition rules, the API key is not included in the source code. Run the following command in the browser's developer console (F12):
+   process = { env: { API_KEY: 'YOUR_GEMINI_API_KEY' } };
+   (Note: Replace 'YOUR_GEMINI_API_KEY' with your actual key. This key is session-based and must be set again on page refresh.)
+
+User Manual:
+For detailed instructions, please see our User Guide in the section above or in README.md.
+
+Legal Disclaimer:
+- The AI-generated analysis is for informational purposes only and is not a substitute for professional advice. The user assumes all responsibility for decisions made based on this information.
