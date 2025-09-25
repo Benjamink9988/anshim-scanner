@@ -4,19 +4,20 @@ import ResultDisplay from './components/ResultDisplay';
 import Spinner from './components/Spinner';
 import DisclaimerModal from './components/DisclaimerModal';
 import UserManualModal from './components/UserManualModal';
-import { ProductAnalysis } from './types';
-import { analyzeProduct } from './services/geminiService';
+import { ProductAnalysis, FoodProductAnalysis, AnalysisMode } from './types';
+import { analyzeProduct, analyzeFoodProduct } from './services/geminiService';
 import { fileToBase64, fileToDataUrl } from './utils/imageHelper';
 import { translations } from './translations';
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [analysisResult, setAnalysisResult] = useState<ProductAnalysis | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<ProductAnalysis | FoodProductAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<'en' | 'ko'>('ko');
   const [scannedImageUrls, setScannedImageUrls] = useState<string[]>([]);
   const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
   const [isUserManualVisible, setIsUserManualVisible] = useState(false);
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(AnalysisMode.Household);
 
 
   const t = translations[language];
@@ -28,7 +29,7 @@ const App: React.FC = () => {
     setScannedImageUrls([]);
 
     try {
-      let result: ProductAnalysis;
+      let result: ProductAnalysis | FoodProductAnalysis;
       if (Array.isArray(value) && value.length > 0) {
         const previewUrls = await Promise.all(value.map(fileToDataUrl));
         setScannedImageUrls(previewUrls);
@@ -40,7 +41,11 @@ const App: React.FC = () => {
           })
         );
         
-        result = await analyzeProduct(imageParts, language);
+        if (analysisMode === AnalysisMode.Household) {
+          result = await analyzeProduct(imageParts, language);
+        } else {
+          result = await analyzeFoodProduct(imageParts, language);
+        }
 
       } else {
         throw new Error("No image files were provided for analysis.");
@@ -53,7 +58,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [language]);
+  }, [language, analysisMode]);
 
   const handleReset = () => {
     setAnalysisResult(null);
@@ -87,7 +92,7 @@ const App: React.FC = () => {
     if (analysisResult) {
       return <ResultDisplay result={analysisResult} onReset={handleReset} language={language} scannedImageUrls={scannedImageUrls} />;
     }
-    return <Scanner onScan={handleScan} isLoading={isLoading} language={language} />;
+    return <Scanner onScan={handleScan} isLoading={isLoading} language={language} analysisMode={analysisMode} setAnalysisMode={setAnalysisMode} />;
   };
 
   return (

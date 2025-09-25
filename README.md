@@ -1,6 +1,6 @@
 # 안심 스캐너 (Anshim Scanner)
 
-**안심 스캐너**는 Google Gemini AI를 활용하여 생활화학제품의 안전성과 환경 영향을 분석해주는 웹 애플리케이션입니다. 제품의 성분표 라벨을 스캔하여 사용자가 정보에 기반한 현명한 결정을 내릴 수 있도록 돕고, 모두가 안심하고 제품을 사용할 수 있는 환경을 만드는 것을 목표로 합니다.
+**안심 스캐너**는 Google Gemini AI를 활용하여 생활화학제품 및 식품의 안전성과 환경 영향을 분석해주는 웹 애플리케이션입니다. 제품의 성분표 라벨을 스캔하여 사용자가 정보에 기반한 현명한 결정을 내릴 수 있도록 돕고, 모두가 안심하고 제품을 사용할 수 있는 환경을 만드는 것을 목표로 합니다.
 
 '**안심 (Anshim)**'은 한국어로 '마음이 편안하고 걱정이 없는 상태'를 의미합니다. '안심 스캐너'라는 이름은 **"이 앱으로 제품을 스캔하여 안전성을 확인하고, 걱정 없이 안심하고 사용하세요"**라는 핵심 가치를 전달합니다.
 
@@ -8,9 +8,10 @@
 
 ## 주요 기능
 
-*   **AI 기반 종합 분석**: Gemini AI를 통해 제품의 안전성 점수, 등급(안전, 주의, 고위험), 성분별 위험도, 환경 영향 점수 등을 포함한 상세한 보고서를 생성합니다.
+*   **듀얼 분석 모드**: **생활화학제품**과 **식품** 두 가지 모드를 제공하여 각 제품 유형에 최적화된 분석을 수행합니다.
+*   **AI 기반 종합 분석**: Gemini AI를 통해 제품의 안전성 점수, 등급, 성분별 위험도, 환경 영향(생활화학제품) 또는 식품첨가물, 알레르기 정보(식품) 등을 포함한 상세 보고서를 생성합니다.
 *   **성분 스캔 (OCR)**: 스마트폰 카메라로 촬영한 성분표 이미지에서 텍스트를 자동 추출하여 분석합니다.
-*   **취약 계층 맞춤 분석**: 영유아, 임산부, 반려동물, 호흡기 민감군 등 특정 그룹에 대한 위험도를 재평가하는 심층 분석 기능을 제공합니다.
+*   **취약 계층 맞춤 분석 (생활화학제품)**: 영유아, 임산부, 반려동물 등 특정 그룹에 대한 위험도를 재평가하는 심층 분석 기능을 제공합니다.
 *   **실용적인 가이드 제공**: 위험 등급이 높은 제품의 경우, 위험을 최소화할 수 있는 '안전 사용 가이드'와 '안전한 폐기 방법'을 안내합니다.
 *   **다국어 지원**: 한국어와 영어를 모두 지원하여 더 많은 사용자가 이용할 수 있습니다.
 *   **결과 공유 및 저장**: 분석 결과를 텍스트, JPG 등 다양한 형식으로 복사, 공유, 저장할 수 있습니다.
@@ -41,27 +42,28 @@
 
 ### 1. 시작하기
 
-앱을 처음 실행하면 제품 라벨을 스캔할 수 있는 초기 화면이 나타납니다. 우측 상단에서 언어(한국어/영어)를 선택할 수 있습니다.
+앱을 처음 실행하면 상단에서 **분석 모드('생활화학제품' 또는 '식품')**를 선택할 수 있습니다. 우측 상단에서는 언어(한국어/영어)를 선택할 수 있습니다.
 
 ### 2. 제품 라벨 스캔 및 분석
 
-1.  **이미지 준비**: 분석할 제품의 성분 목록이 잘 보이도록 선명하고 밝은 사진을 준비합니다. 성분 목록이 길 경우, 여러 부분으로 나누어 여러 장의 사진을 촬영해도 좋습니다.
-2.  **이미지 업로드**:
+1.  **모드 선택**: 분석하려는 제품 유형에 맞게 모드를 선택합니다.
+2.  **이미지 준비**: 분석할 제품의 성분 목록이 잘 보이도록 선명하고 밝은 사진을 준비합니다. 성분 목록이 길 경우, 여러 부분으로 나누어 여러 장의 사진을 촬영해도 좋습니다.
+3.  **이미지 업로드**:
     *   `이미지 업로드` 버튼: 스마트폰이나 컴퓨터에 저장된 사진을 선택합니다. 한 번에 여러 장을 선택할 수 있습니다.
     *   `사진 찍기` 버튼: 스마트폰의 카메라를 직접 실행하여 라벨을 촬영합니다.
-3.  **미리보기 확인**: 업로드한 이미지들이 화면에 나타납니다. 잘못된 이미지는 우측 상단의 'X' 버튼을 눌러 삭제할 수 있습니다.
-4.  **분석 시작**: 이미지가 준비되면, 하단의 `N개 이미지 분석` 버튼을 클릭하여 AI 분석을 시작합니다. 잠시 후 분석이 진행되는 동안 로딩 화면이 표시됩니다.
+4.  **미리보기 확인**: 업로드한 이미지들이 화면에 나타납니다. 잘못된 이미지는 우측 상단의 'X' 버튼을 눌러 삭제할 수 있습니다.
+5.  **분석 시작**: 이미지가 준비되면, 하단의 `N개 이미지 분석` 버튼을 클릭하여 AI 분석을 시작합니다. 잠시 후 분석이 진행되는 동안 로딩 화면이 표시됩니다.
 
 ### 3. 분석 결과 확인하기
 
-분석이 완료되면 상세한 결과 보고서가 표시됩니다.
+분석이 완료되면 선택한 모드에 맞는 상세한 결과 보고서가 표시됩니다.
 
-*   **주요 분석 결과**: 제품의 전반적인 '안전 등급'과 '환경 등급'을 점수와 함께 한눈에 파악할 수 있습니다. AI가 요약한 핵심 내용도 제공됩니다.
-*   **취약 계층 분석**: '영유아', '임산부' 등 특정 그룹에 대한 맞춤형 분석이 필요하다면, 해당 버튼을 클릭하세요. AI가 해당 그룹의 민감도를 고려하여 안전성 점수와 등급을 다시 평가한 결과를 보여줍니다.
-*   **상세 정보**:
-    *   **안전 사용 가이드**: 주의가 필요한 제품의 경우, 위험을 줄일 수 있는 구체적인 사용 방법을 안내합니다.
-    *   **성분 심층 분석**: 제품에 포함된 모든 성분을 목록으로 보여주고, 각 성분의 위험도를 '낮음', '중간', '높음'으로 평가하여 그 이유를 설명합니다.
-    *   **환경 영향, 과거 사고 이력, 대안 제품**: 제품의 환경적 측면과 관련된 추가 정보를 제공합니다.
+*   **주요 분석 결과**: 제품의 전반적인 안전 등급과 핵심 요약 정보를 한눈에 파악할 수 있습니다.
+*   **생활화학제품 분석 시**:
+    *   **취약 계층 분석**: '영유아', '임산부' 등 특정 그룹에 대한 맞춤형 분석이 필요하다면, 해당 버튼을 클릭하여 재평가된 결과를 확인합니다.
+    *   **상세 정보**: '안전 사용 가이드', '성분 심층 분석', '환경 영향' 등 상세 정보를 제공합니다.
+*   **식품 분석 시**:
+    *   **상세 정보**: '알레르기 정보', '식품첨가물 분석', '영양 분석' 등 식품에 특화된 정보를 제공합니다.
 
 ### 4. 결과 활용 및 새로 시작하기
 
@@ -84,7 +86,7 @@
 
 # Anshim Scanner
 
-**Anshim Scanner** is a web application that leverages Google Gemini AI to analyze the safety and environmental impact of household chemical products. By scanning a product's ingredient label, this app empowers users to make informed decisions, aiming to create an environment where everyone can use products with peace of mind.
+**Anshim Scanner** is a web application that leverages Google Gemini AI to analyze the safety and environmental impact of household chemical products and food. By scanning a product's ingredient label, this app empowers users to make informed decisions, aiming to create an environment where everyone can use products with peace of mind.
 
 '**Anshim (안심)**' is a Korean word that means **"a state of being at ease and free from worry."** The name 'Anshim Scanner' conveys the core value: **"Scan products with this app to verify their safety, and use them with peace of mind."**
 
@@ -92,10 +94,11 @@
 
 ## Key Features
 
-*   **Comprehensive AI Analysis**: Generates a detailed report including a safety score, grade (Safe, Caution, High Risk), ingredient-specific risks, and an environmental impact score using Gemini AI.
+*   **Dual Analysis Modes**: Offers two modes, **'Household Product'** and **'Food'**, to provide optimized analysis for each product type.
+*   **Comprehensive AI Analysis**: Generates detailed reports including safety scores, grades, ingredient risks, environmental impact (for household products), or food additives and allergen info (for food) using Gemini AI.
 *   **Ingredient Scan (OCR)**: Automatically extracts and analyzes text from images of ingredient labels taken with a smartphone camera.
-*   **Personalized Analysis for Vulnerable Groups**: Offers a refined analysis feature that re-evaluates risks for specific groups, such as infants, pregnant women, pets, and individuals with respiratory sensitivities.
-*   **Actionable Guidance**: Provides a 'Safety Tips' guide for high-risk products to minimize exposure and offers a 'Safe Disposal Tip' for environmental protection.
+*   **Personalized Analysis for Vulnerable Groups (Household Products)**: Offers a refined analysis feature that re-evaluates risks for specific groups, such as infants, pregnant women, and pets.
+*   **Actionable Guidance**: Provides a 'Safety Tips' guide for high-risk products and a 'Safe Disposal Tip' for environmental protection.
 *   **Multilingual Support**: Supports both Korean and English to cater to a wider audience.
 *   **Share & Save Results**: Allows users to copy, share, and save the analysis results in various formats like Text and JPG.
 
@@ -125,35 +128,36 @@ This project uses only open-source licensed technologies to comply with contest 
 
 ### 1. Getting Started
 
-When you first launch the app, you will see the initial screen for scanning product labels. You can select your preferred language (Korean/English) in the top-right corner.
+When you first launch the app, you can select an **analysis mode ('Household Product' or 'Food')** at the top. You can also select your preferred language (Korean/English) in the top-right corner.
 
 ### 2. Scanning and Analyzing a Product Label
 
-1.  **Prepare Your Images**: Get clear, well-lit photos of the product's ingredient list. If the list is long, you can take multiple pictures covering different sections.
-2.  **Upload Images**:
-    *   `Upload Image(s)` button: Select one or more photos stored on your smartphone or computer.
-    *   `Take Photo` button: Launch your smartphone's camera directly to capture the label.
-3.  **Review Previews**: The images you've uploaded will appear on the screen. You can remove any incorrect images by clicking the 'X' button in the top-right corner of the preview.
-4.  **Start Analysis**: Once your images are ready, click the `Analyze X Image(s)` button at the bottom to begin the AI analysis. A loading screen will appear while the analysis is in progress.
+1.  **Select Mode**: Choose the mode that matches your product type.
+2.  **Prepare Your Images**: Get clear, well-lit photos of the product's ingredient list. If the list is long, you can take multiple pictures.
+3.  **Upload Images**:
+    *   `Upload Image(s)` button: Select one or more photos stored on your device.
+    *   `Take Photo` button: Launch your smartphone's camera to capture the label.
+4.  **Review Previews**: The uploaded images will appear on the screen. Remove any incorrect images by clicking the 'X' button.
+5.  **Start Analysis**: Click the `Analyze X Image(s)` button at the bottom to begin.
 
 ### 3. Understanding the Results
 
-Once the analysis is complete, a detailed report will be displayed.
+A detailed report tailored to the selected mode will be displayed.
 
-*   **Key Findings**: Get an at-a-glance overview of the product's overall 'Safety Grade' and 'Eco-Grade', complete with scores. An AI-generated summary of key findings is also provided.
-*   **Vulnerable Group Analysis**: If you need a personalized analysis for specific groups like 'Infants' or 'Pregnant Individuals', click the corresponding buttons. The AI will re-evaluate the safety score and grade based on the sensitivities of that group and show you the updated results.
-*   **Detailed Information**:
-    *   **Safety & Mitigation Tips**: For products that require caution, this section provides specific instructions on how to minimize risks.
-    *   **Ingredient Deep Dive**: Lists all identified ingredients, rating each with a 'Low', 'Moderate', or 'High' risk level and explaining the reason.
-    *   **Environmental Impact, Incident History, Alternatives**: Provides additional information regarding the product's environmental aspects and other relevant data.
+*   **Key Findings**: Get an at-a-glance overview of the product's safety grade and key summary.
+*   **For Household Product Analysis**:
+    *   **Vulnerable Group Analysis**: Click buttons like 'Infants' for a personalized re-evaluation of risks.
+    *   **Detailed Information**: View 'Safety Tips', 'Ingredient Deep Dive', 'Environmental Impact', and more.
+*   **For Food Analysis**:
+    *   **Detailed Information**: Check for food-specific details like 'Allergen Info', 'Food Additive Analysis', and 'Nutritional Summary'.
 
 ### 4. Using the Results and Starting Over
 
-*   **Save and Share Results**: Use the icons in the sticky menu at the bottom of the screen to utilize the analysis report.
-    *   **Copy Text**: Copies the entire analysis report in text format.
-    *   **Save as JPG**: Saves the current report view as a single image file.
-    *   **Save as TXT**: Downloads the analysis report as a text file (.txt).
-*   **Start Over**: Click the `Scan Another Product` button to return to the initial screen and analyze a new product.
+*   **Save and Share Results**: Use the icons in the sticky menu at the bottom.
+    *   **Copy Text**: Copies the entire report in text format.
+    *   **Save as JPG**: Saves the current report view as an image file.
+    *   **Save as TXT**: Downloads the report as a text file.
+*   **Start Over**: Click the `Scan Another Product` button to return to the initial screen.
 
 ---
 

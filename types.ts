@@ -6,6 +6,11 @@ export enum VulnerableMode {
     Respiratory = 'Respiratory',
 }
 
+export enum AnalysisMode {
+    Household = 'household',
+    Food = 'food',
+}
+
 export interface Product {
     name: string;
     brand: string;
@@ -50,6 +55,7 @@ export interface EnvironmentalImpact {
 }
 
 export interface ProductAnalysis {
+    mode: AnalysisMode.Household;
     product: Product;
     analysis: Analysis;
     ingredients: Ingredient[];
@@ -57,6 +63,50 @@ export interface ProductAnalysis {
     alternatives: Alternative[];
     environmentalImpact: EnvironmentalImpact;
 }
+
+export interface FoodProduct {
+    name: string;
+    brand: string;
+    category: string;
+}
+
+export interface FoodSafetyAnalysis {
+    score: number;
+    grade: 'Safe' | 'Caution' | 'High Risk';
+    summary: string;
+    notes: string;
+}
+
+export interface FoodAdditive {
+    name: string;
+    riskLevel: 'Low' | 'Moderate' | 'High' | 'Unknown';
+    reason: string;
+    purpose: string;
+    adi: string;
+}
+
+export interface AllergenInfo {
+    contains: string[];
+    mayContain: string[];
+    summary: string;
+}
+
+export interface NutritionalAnalysis {
+    grade: 'Good' | 'Moderate' | 'Poor';
+    summary: string;
+    keyPoints: string[];
+}
+
+export interface FoodProductAnalysis {
+    mode: AnalysisMode.Food;
+    product: FoodProduct;
+    analysis: FoodSafetyAnalysis;
+    additives: FoodAdditive[];
+    allergens: AllergenInfo;
+    nutrition: NutritionalAnalysis;
+    alternatives: Alternative[];
+}
+
 
 export enum ScanMode {
     OCR = 'ocr',

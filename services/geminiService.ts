@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { ProductAnalysis, VulnerableMode } from "../types";
+import { ProductAnalysis, FoodProductAnalysis, VulnerableMode, AnalysisMode } from "../types";
 import { GEMINI_MODEL } from "../constants";
 import { translations } from "../translations";
 
@@ -9,9 +9,10 @@ if (!process.env.API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const responseSchema = {
+const householdResponseSchema = {
     type: Type.OBJECT,
     properties: {
+        mode: { type: Type.STRING, description: "The analysis mode, always 'household'." },
         product: {
             type: Type.OBJECT,
             properties: {
@@ -105,11 +106,86 @@ const responseSchema = {
             required: ["score", "grade", "summary", "packagingRecyclability", "keyFactors", "safeDisposalTip"],
         }
     },
-    required: ["product", "analysis", "ingredients", "incidents", "alternatives", "environmentalImpact"],
+    required: ["mode", "product", "analysis", "ingredients", "incidents", "alternatives", "environmentalImpact"],
+};
+
+const foodResponseSchema = {
+    type: Type.OBJECT,
+    properties: {
+        mode: { type: Type.STRING, description: "The analysis mode, always 'food'." },
+        product: {
+            type: Type.OBJECT,
+            properties: {
+                name: { type: Type.STRING, description: "The full name of the food product." },
+                brand: { type: Type.STRING, description: "The brand name of the food product." },
+                category: { type: Type.STRING, description: "e.g., 'Snack', 'Beverage', 'Instant Noodle'." },
+            },
+            required: ["name", "brand", "category"],
+        },
+        analysis: {
+            type: Type.OBJECT,
+            properties: {
+                score: { type: Type.INTEGER, description: "Overall food safety score from 0 (most hazardous) to 100 (safest), focusing on additives and contaminants." },
+                grade: { type: Type.STRING, description: "A grade based on the score: 'Safe', 'Caution', or 'High Risk'." },
+                summary: { type: Type.STRING, description: "A concise, 3-sentence summary of the key findings about food safety and additives." },
+                notes: { type: Type.STRING, description: "Any uncertainties or assumptions made. If none, state 'No specific issues to note.'" },
+            },
+            required: ["score", "grade", "summary", "notes"],
+        },
+        additives: {
+            type: Type.ARRAY,
+            description: "List of all identified food additives with their risk assessment.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    name: { type: Type.STRING },
+                    riskLevel: { type: Type.STRING, description: "'Low', 'Moderate', 'High', or 'Unknown'" },
+                    reason: { type: Type.STRING, description: "Brief explanation of the additive's potential risks or function." },
+                    purpose: { type: Type.STRING, description: "The primary function of the additive, e.g., 'Preservative', 'Artificial Color', 'Emulsifier'." },
+                    adi: { type: Type.STRING, description: "Note on the Acceptable Daily Intake (ADI), e.g., 'Considered safe in small amounts', 'High consumption should be avoided'.", "default": "N/A" }
+                },
+                required: ["name", "riskLevel", "reason", "purpose"],
+            }
+        },
+        allergens: {
+            type: Type.OBJECT,
+            description: "Information on allergens present in the product.",
+            properties: {
+                contains: { type: Type.ARRAY, description: "List of allergens explicitly listed as contained in the product (e.g., 'Milk', 'Soybean', 'Wheat').", items: { type: Type.STRING } },
+                mayContain: { type: Type.ARRAY, description: "List of allergens that may be present due to cross-contamination (e.g., 'May contain traces of nuts').", items: { type: Type.STRING } },
+                summary: { type: Type.STRING, description: "A brief summary of the allergen situation for this product." }
+            },
+            required: ["contains", "mayContain", "summary"],
+        },
+        nutrition: {
+            type: Type.OBJECT,
+            description: "A brief, qualitative analysis of the product's nutritional profile.",
+            properties: {
+                grade: { type: Type.STRING, description: "A qualitative grade: 'Good', 'Moderate', or 'Poor'." },
+                summary: { type: Type.STRING, description: "A 2-3 sentence summary of the nutritional aspects (e.g., high in sugar, good source of protein)." },
+                keyPoints: { type: Type.ARRAY, description: "A list of 2-4 key nutritional highlights or concerns.", items: { type: Type.STRING } }
+            },
+            required: ["grade", "summary", "keyPoints"],
+        },
+        alternatives: {
+            type: Type.ARRAY,
+            description: "Up to 3 recommended healthier alternative food products.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    name: { type: Type.STRING },
+                    brand: { type: Type.STRING },
+                    reason: { type: Type.STRING, description: "Why this alternative is considered healthier (e.g., 'No artificial additives', 'Lower in sodium', 'Organic ingredients')." }
+                },
+                required: ["name", "brand", "reason"],
+            }
+        },
+    },
+    required: ["mode", "product", "analysis", "additives", "allergens", "nutrition", "alternatives"],
 };
 
 
-const buildPrompt = (
+const buildHouseholdPrompt = (
     vulnerableModes: VulnerableMode[] = [],
     language: 'en' | 'ko' = 'en'
 ) => {
@@ -133,7 +209,6 @@ const buildPrompt = (
     return `${inputInstruction} \n${modeText} \n${mainInstruction}`;
 };
 
-
 export const analyzeProduct = async (
     images: { data: string; mimeType: string }[],
     language: 'en' | 'ko' = 'en',
@@ -143,9 +218,9 @@ export const analyzeProduct = async (
             ? "The entire analysis and all text fields in the JSON response must be in Korean (한국어)."
             : "The entire analysis and all text fields in the JSON response must be in English.";
 
-        const systemInstruction = `You are an expert household product safety and environmental analyst. Your task is to analyze product ingredients based on the provided information. You must return a detailed analysis in a structured JSON format that adheres strictly to the provided schema. Do not output markdown. Prioritize safety. If information is missing or ambiguous, state it clearly in the 'notes' field and provide a conservative (higher risk) score. ${langInstruction}`;
+        const systemInstruction = `You are an expert household product safety and environmental analyst. Your task is to analyze product ingredients based on the provided information. You must return a detailed analysis in a structured JSON format that adheres strictly to the provided schema. Do not output markdown. Prioritize safety. If information is missing or ambiguous, state it clearly in the 'notes' field and provide a conservative (higher risk) score. Ensure the 'mode' field in the JSON is set to 'household'. ${langInstruction}`;
 
-        const userPrompt = buildPrompt([], language);
+        const userPrompt = buildHouseholdPrompt([], language);
         
         const contents = { parts: [{ text: userPrompt }, ...images.map(image => ({ inlineData: { data: image.data, mimeType: image.mimeType } }))] };
 
@@ -154,7 +229,7 @@ export const analyzeProduct = async (
             contents,
             config: {
                 responseMimeType: "application/json",
-                responseSchema: responseSchema,
+                responseSchema: householdResponseSchema,
                 systemInstruction: systemInstruction,
             },
         });
@@ -172,6 +247,48 @@ export const analyzeProduct = async (
         throw new Error("Failed to analyze product. The model may have returned an invalid response.");
     }
 };
+
+export const analyzeFoodProduct = async (
+    images: { data: string; mimeType: string }[],
+    language: 'en' | 'ko' = 'en',
+): Promise<FoodProductAnalysis> => {
+    try {
+        const langInstruction = language === 'ko'
+            ? "The entire analysis and all text fields in the JSON response must be in Korean (한국어)."
+            : "The entire analysis and all text fields in the JSON response must be in English.";
+
+        const systemInstruction = `You are an expert food safety analyst and nutritionist. Your task is to analyze food product labels. Extract ingredients, paying close attention to food additives. Analyze their safety, purpose, and mention ADI (Acceptable Daily Intake) where relevant. Identify allergens. Provide a qualitative nutritional summary. You must return a detailed analysis in a structured JSON format that adheres strictly to the provided schema. Do not output markdown. If information is ambiguous, state it in the 'notes' field and provide a conservative (higher risk) score. Ensure the 'mode' field in the JSON is set to 'food'. ${langInstruction}`;
+        
+        const userPrompt = language === 'ko'
+            ? `제공된 식품 라벨 이미지에서 '원재료명' 또는 '성분' 목록을 꼼꼼하게 추출하세요. 이 성분 목록을 기반으로, 식품첨가물의 안전성, 사용 목적, 일일섭취허용량(ADI) 관련 정보, 알레르기 유발 물질, 그리고 전반적인 영양 프로필을 분석해주세요. 더 건강한 대안 제품이 있다면 3개까지 추천해주세요.`
+            : `Meticulously extract the 'ingredients' list from the provided food label image(s). Based on this list, analyze the safety of food additives, their purpose, and any relevant information on Acceptable Daily Intake (ADI). Identify potential allergens and provide a general nutritional profile. Recommend up to 3 healthier alternative products.`;
+
+        const contents = { parts: [{ text: userPrompt }, ...images.map(image => ({ inlineData: { data: image.data, mimeType: image.mimeType } }))] };
+
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: foodResponseSchema,
+                systemInstruction: systemInstruction,
+            },
+        });
+
+        const jsonString = response.text;
+        if (!jsonString) {
+            throw new Error("Received an empty response from the API.");
+        }
+
+        const parsedJson = JSON.parse(jsonString);
+        return parsedJson as FoodProductAnalysis;
+
+    } catch (error) {
+        console.error("Error analyzing food product:", error);
+        throw new Error("Failed to analyze food product. The model may have returned an invalid response.");
+    }
+};
+
 
 export const refineAnalysis = async (
     currentAnalysis: ProductAnalysis,
@@ -197,7 +314,7 @@ export const refineAnalysis = async (
             contents: userPrompt,
             config: {
                 responseMimeType: "application/json",
-                responseSchema: responseSchema,
+                responseSchema: householdResponseSchema,
                 systemInstruction: systemInstruction,
             },
         });

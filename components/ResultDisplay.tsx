@@ -1,18 +1,18 @@
 import React, { useState, useRef } from 'react';
-import { ProductAnalysis, VulnerableMode } from '../types';
+import { ProductAnalysis, FoodProductAnalysis, VulnerableMode, AnalysisMode } from '../types';
 import { translations } from '../translations';
 import { VULNERABLE_MODES } from '../constants';
 import { refineAnalysis } from '../services/geminiService';
 import {
     ShieldCheckIcon, AlertTriangleIcon, ShieldAlertIcon, InfoIcon, RecycleIcon, RefreshCwIcon, HistoryIcon, ClipboardListIcon, FileTextIcon,
     StarIcon, LeafIcon, Trash2Icon, UserCheckIcon, InfantIcon, PregnantIcon,
-    PetIcon, RespiratoryIcon, ImageIcon, CopyIcon
+    PetIcon, RespiratoryIcon, ImageIcon, CopyIcon, UtensilsCrossedIcon
 } from './Icons';
 import html2canvas from 'html2canvas';
 
 // PROPS
 interface ResultDisplayProps {
-    result: ProductAnalysis;
+    result: ProductAnalysis | FoodProductAnalysis;
     onReset: () => void;
     language: 'en' | 'ko';
     scannedImageUrls: string[];
@@ -20,18 +20,21 @@ interface ResultDisplayProps {
 
 // HELPER COMPONENTS
 
-const ModernScoreMeter: React.FC<{ grade: 'Safe' | 'Caution' | 'High Risk' | 'Eco-Friendly' | 'Moderate Impact' | 'High Impact', score: number, title: string, subtitle: string }> = ({ grade, score, title, subtitle }) => {
+const ModernScoreMeter: React.FC<{ grade: string, score: number, title: string, subtitle: string }> = ({ grade, score, title, subtitle }) => {
     const radius = 52;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (score / 100) * circumference;
 
-    const gradeStyles = {
+    const gradeStyles: { [key: string]: { color: string; bgColor: string; } } = {
         'Safe': { color: '#22c55e', bgColor: '#ecfdf5' }, // green-500
-        'Eco-Friendly': { color: '#22c55e', bgColor: '#ecfdf5' }, // green-500
+        'Eco-Friendly': { color: '#22c55e', bgColor: '#ecfdf5' },
+        'Good': { color: '#22c55e', bgColor: '#ecfdf5' },
         'Caution': { color: '#f59e0b', bgColor: '#fffbeb' }, // yellow-500
-        'Moderate Impact': { color: '#f59e0b', bgColor: '#fffbeb' }, // yellow-500
+        'Moderate Impact': { color: '#f59e0b', bgColor: '#fffbeb' },
+        'Moderate': { color: '#f59e0b', bgColor: '#fffbeb' },
         'High Risk': { color: '#ef4444', bgColor: '#fef2f2' }, // red-500
-        'High Impact': { color: '#ef4444', bgColor: '#fef2f2' }, // red-500
+        'High Impact': { color: '#ef4444', bgColor: '#fef2f2' },
+        'Poor': { color: '#ef4444', bgColor: '#fef2f2' },
     };
     
     const style = gradeStyles[grade] || { color: '#64748b', bgColor: '#f8fafc' }; // slate-500
@@ -113,13 +116,16 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset, language
     const [selectedMode, setSelectedMode] = useState<VulnerableMode | null>(null);
     const [actionStatus, setActionStatus] = useState('');
     const reportRef = useRef<HTMLDivElement>(null);
+    
+    const isFoodMode = result.mode === AnalysisMode.Food;
 
     const handleRefine = async (mode: VulnerableMode) => {
+        if (isFoodMode) return;
         setIsRefining(true);
         setRefineError(null);
         setSelectedMode(mode);
         try {
-            const refinedResult = await refineAnalysis(result, mode, language);
+            const refinedResult = await refineAnalysis(result as ProductAnalysis, mode, language);
             setRefinedAnalysis(refinedResult);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -135,6 +141,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset, language
         'Low': { dot: 'bg-green-500', text: 'text-green-800', bg: 'bg-green-50' },
         'Moderate': { dot: 'bg-yellow-500', text: 'text-yellow-800', bg: 'bg-yellow-50' },
         'High': { dot: 'bg-red-500', text: 'text-red-800', bg: 'bg-red-50' },
+        'Unknown': { dot: 'bg-slate-400', text: 'text-slate-600', bg: 'bg-slate-200' },
     };
     
     const generateTextReport = () => {
@@ -150,31 +157,59 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset, language
         sections.push(`${data.product.name} (${data.product.brand}) - ${data.product.category}`);
         sections.push('');
 
-        sections.push(`[ ${t.analysisSummary} ]`);
-        sections.push(`${t.grade}: ${data.analysis.grade} (${data.analysis.score}/100)`);
-        sections.push(`${t.ecoGrade}: ${data.environmentalImpact.grade} (${data.environmentalImpact.score}/100)`);
-        sections.push('');
-        sections.push(data.analysis.summary);
-        sections.push('');
+        if (data.mode === AnalysisMode.Household) {
+            sections.push(`[ ${t.analysisSummary} ]`);
+            sections.push(`${t.grade}: ${data.analysis.grade} (${data.analysis.score}/100)`);
+            sections.push(`${t.ecoGrade}: ${data.environmentalImpact.grade} (${data.environmentalImpact.score}/100)`);
+            sections.push('');
+            sections.push(data.analysis.summary);
+            sections.push('');
 
-        if (data.analysis.mitigationTips?.length > 0) {
-            sections.push(`[ ${t.safetyTips} ]`);
-            data.analysis.mitigationTips.forEach(tip => sections.push(`- ${tip}`));
+            if (data.analysis.mitigationTips?.length > 0) {
+                sections.push(`[ ${t.safetyTips} ]`);
+                data.analysis.mitigationTips.forEach(tip => sections.push(`- ${tip}`));
+                sections.push('');
+            }
+
+            sections.push(`[ ${t.ingredientDeepDive} (${data.ingredients.length}) ]`);
+            data.ingredients.forEach(ing => {
+                sections.push(`- ${ing.name} [${ing.riskLevel.toUpperCase()}]`);
+                sections.push(`  ${ing.reason}`);
+            });
+            sections.push('');
+            
+            sections.push(`[ ${t.environmentalImpact} ]`);
+            sections.push(data.environmentalImpact.summary);
+            sections.push(`${t.packaging}: ${data.environmentalImpact.packagingRecyclability}`);
+            sections.push(`${t.disposalTip}: ${data.environmentalImpact.safeDisposalTip}`);
+            sections.push('');
+        } else { // Food Mode
+            sections.push(`[ ${t.analysisSummary} ]`);
+            sections.push(`${t.foodSafetyGrade}: ${data.analysis.grade} (${data.analysis.score}/100)`);
+            sections.push(`${t.nutritionalGrade}: ${data.nutrition.grade}`);
+            sections.push('');
+            sections.push(data.analysis.summary);
+            sections.push('');
+
+            sections.push(`[ ${t.allergenInfo} ]`);
+            sections.push(data.allergens.summary);
+            if (data.allergens.contains.length > 0) sections.push(`${t.allergenContains}: ${data.allergens.contains.join(', ')}`);
+            if (data.allergens.mayContain.length > 0) sections.push(`${t.allergenMayContain}: ${data.allergens.mayContain.join(', ')}`);
+            sections.push('');
+
+            sections.push(`[ ${t.foodAdditiveAnalysis} (${data.additives.length}) ]`);
+            data.additives.forEach(add => {
+                sections.push(`- ${add.name} [${add.riskLevel.toUpperCase()}]`);
+                sections.push(`  ${t.purpose}: ${add.purpose}`);
+                sections.push(`  ${t.reason}: ${add.reason}`);
+            });
+            sections.push('');
+            
+            sections.push(`[ ${t.nutritionalSummary} ]`);
+            sections.push(data.nutrition.summary);
+            data.nutrition.keyPoints.forEach(p => sections.push(`- ${p}`));
             sections.push('');
         }
-
-        sections.push(`[ ${t.ingredientDeepDive} (${data.ingredients.length}) ]`);
-        data.ingredients.forEach(ing => {
-            sections.push(`- ${ing.name} [${ing.riskLevel.toUpperCase()}]`);
-            sections.push(`  ${ing.reason}`);
-        });
-        sections.push('');
-        
-        sections.push(`[ ${t.environmentalImpact} ]`);
-        sections.push(data.environmentalImpact.summary);
-        sections.push(`${t.packaging}: ${data.environmentalImpact.packagingRecyclability}`);
-        sections.push(`${t.disposalTip}: ${data.environmentalImpact.safeDisposalTip}`);
-        sections.push('');
 
         return sections.join('\n');
     };
@@ -242,118 +277,212 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset, language
 
                 {/* Key Findings */}
                 <div className="space-y-4">
-                    <h2 className="text-xl font-bold text-slate-800 text-center">{selectedMode ? t.refinedAnalysisTitle.replace('{group}', t.vulnerableModes[selectedMode as keyof typeof t.vulnerableModes]) : t.analysisSummary}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <ModernScoreMeter grade={displayData.analysis.grade} score={displayData.analysis.score} title={t.grade} subtitle={t.gradeSubtitles[displayData.analysis.grade as keyof typeof t.gradeSubtitles] || ''}/>
-                        <ModernScoreMeter grade={displayData.environmentalImpact.grade} score={displayData.environmentalImpact.score} title={t.ecoGrade} subtitle={t.gradeSubtitles[displayData.environmentalImpact.grade as keyof typeof t.gradeSubtitles] || ''}/>
-                    </div>
-                     <div className="p-4 rounded-lg bg-slate-50/50 text-center">
-                        <p className="text-sm text-slate-600">{displayData.analysis.summary || t.noDataAvailable}</p>
-                    </div>
+                    <h2 className="text-xl font-bold text-slate-800 text-center">{!isFoodMode && selectedMode ? t.refinedAnalysisTitle.replace('{group}', t.vulnerableModes[selectedMode as keyof typeof t.vulnerableModes]) : t.analysisSummary}</h2>
+                    
+                    {displayData.mode === AnalysisMode.Household ? (
+                        <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <ModernScoreMeter grade={displayData.analysis.grade} score={displayData.analysis.score} title={t.grade} subtitle={t.gradeSubtitles[displayData.analysis.grade as keyof typeof t.gradeSubtitles] || ''}/>
+                            <ModernScoreMeter grade={displayData.environmentalImpact.grade} score={displayData.environmentalImpact.score} title={t.ecoGrade} subtitle={t.gradeSubtitles[displayData.environmentalImpact.grade as keyof typeof t.gradeSubtitles] || ''}/>
+                        </div>
+                        <div className="p-4 rounded-lg bg-slate-50/50 text-center">
+                            <p className="text-sm text-slate-600">{displayData.analysis.summary || t.noDataAvailable}</p>
+                        </div>
+                        </>
+                    ) : (
+                        <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <ModernScoreMeter grade={displayData.analysis.grade} score={displayData.analysis.score} title={t.foodSafetyGrade} subtitle={t.gradeSubtitles[displayData.analysis.grade as keyof typeof t.gradeSubtitles] || ''}/>
+                             <div className="flex flex-col items-center justify-center p-4 rounded-xl text-center bg-slate-50">
+                                <h3 className="text-lg font-semibold text-slate-700">{t.nutritionalGrade}</h3>
+                                <p className="text-4xl font-bold text-brand-primary mt-2">{displayData.nutrition.grade}</p>
+                                <p className="text-xs text-slate-500 mt-2">{t.gradeSubtitles[displayData.nutrition.grade as keyof typeof t.gradeSubtitles] || ''}</p>
+                             </div>
+                        </div>
+                        <div className="p-4 rounded-lg bg-slate-50/50 text-center">
+                            <p className="text-sm text-slate-600">{displayData.analysis.summary || t.noDataAvailable}</p>
+                        </div>
+                        </>
+                    )}
                 </div>
 
                  {/* Vulnerable Group Analysis Card */}
-                 <div className="bg-white p-6 rounded-xl border border-slate-200">
-                    <h2 className="text-lg font-bold text-slate-700 text-center">{t.vulnerableGroupAnalysis}</h2>
-                    <p className="text-sm text-slate-600 text-center mt-1 mb-4">{t.vulnerableGroupPrompt}</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {VULNERABLE_MODES.map(mode => (
-                            <VulnerableModeButton 
-                                key={mode}
-                                mode={mode} 
-                                onClick={handleRefine}
-                                language={language}
-                                isActive={selectedMode === mode}
-                                disabled={isRefining}
-                            />
-                        ))}
+                 {!isFoodMode && (displayData.mode === AnalysisMode.Household) && (
+                     <div className="bg-white p-6 rounded-xl border border-slate-200">
+                        <h2 className="text-lg font-bold text-slate-700 text-center">{t.vulnerableGroupAnalysis}</h2>
+                        <p className="text-sm text-slate-600 text-center mt-1 mb-4">{t.vulnerableGroupPrompt}</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {VULNERABLE_MODES.map(mode => (
+                                <VulnerableModeButton 
+                                    key={mode}
+                                    mode={mode} 
+                                    onClick={handleRefine}
+                                    language={language}
+                                    isActive={selectedMode === mode}
+                                    disabled={isRefining}
+                                />
+                            ))}
+                        </div>
+                        {isRefining && <p className="text-sm text-center text-slate-600 mt-3 animate-pulse">{t.refining}</p>}
+                        {refineError && <p className="text-sm text-center text-red-600 mt-3">{refineError}</p>}
                     </div>
-                    {isRefining && <p className="text-sm text-center text-slate-600 mt-3 animate-pulse">{t.refining}</p>}
-                    {refineError && <p className="text-sm text-center text-red-600 mt-3">{refineError}</p>}
-                </div>
+                 )}
 
                 {/* Details Section */}
                 <div className="space-y-6">
-                    {displayData.analysis.mitigationTips && displayData.analysis.mitigationTips.length > 0 && (
-                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
-                            <div className="flex items-center mb-3">
-                                <UserCheckIcon className="w-6 h-6 text-blue-800 mr-3" />
-                                <h3 className="text-lg font-bold text-blue-800">{t.safetyTips}</h3>
-                            </div>
-                             <ul className="space-y-2 list-disc list-inside text-sm text-blue-800">
-                                {displayData.analysis.mitigationTips.map((tip, i) => <li key={i}>{tip}</li>)}
-                            </ul>
-                        </div>
-                    )}
-
-                    <div className="bg-white p-6 rounded-xl border border-slate-200">
-                        <div className="flex items-center mb-3">
-                           <ClipboardListIcon className="w-6 h-6 text-slate-700 mr-3" />
-                           <h3 className="text-lg font-bold text-slate-700">{t.ingredientDeepDive} <span className="text-sm font-medium bg-slate-200 text-slate-600 rounded-full px-2 py-0.5 align-middle">{displayData.ingredients.length}</span></h3>
-                        </div>
-                        <div className="space-y-2 -mx-2">
-                            {displayData.ingredients.map((ing, i) => (
-                                 <div key={i} className="p-2 border-b border-slate-100 last:border-b-0">
-                                    <div className="flex justify-between items-center">
-                                      <div className="flex items-center">
-                                        <span className={`w-3 h-3 rounded-full mr-3 flex-shrink-0 ${riskColorMap[ing.riskLevel]?.dot || 'bg-slate-400'}`}></span>
-                                        <p className="font-semibold text-slate-800">{ing.name}</p>
-                                      </div>
-                                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${riskColorMap[ing.riskLevel]?.bg || 'bg-slate-200'} ${riskColorMap[ing.riskLevel]?.text || 'text-slate-600'}`}>{ing.riskLevel}</span>
+                    { displayData.mode === AnalysisMode.Household ? (
+                        <>
+                            {displayData.analysis.mitigationTips && displayData.analysis.mitigationTips.length > 0 && (
+                                <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
+                                    <div className="flex items-center mb-3">
+                                        <UserCheckIcon className="w-6 h-6 text-blue-800 mr-3" />
+                                        <h3 className="text-lg font-bold text-blue-800">{t.safetyTips}</h3>
                                     </div>
-                                    <p className="text-sm text-slate-500 mt-1 ml-6">{ing.reason}</p>
+                                    <ul className="space-y-2 list-disc list-inside text-sm text-blue-800">
+                                        {displayData.analysis.mitigationTips.map((tip, i) => <li key={i}>{tip}</li>)}
+                                    </ul>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                    
-                    <div className="bg-white p-6 rounded-xl border border-slate-200">
-                         <div className="flex items-center mb-3">
-                           <LeafIcon className="w-6 h-6 text-slate-700 mr-3" />
-                           <h3 className="text-lg font-bold text-slate-700">{t.environmentalImpact}</h3>
-                        </div>
-                         <div className="space-y-3 text-sm">
-                            <p className="text-slate-600 italic text-center">"{displayData.environmentalImpact.summary}"</p>
-                            <div className="flex items-start"><RecycleIcon className="w-5 h-5 mr-3 mt-0.5 text-green-600 flex-shrink-0"/><p><strong className="font-semibold text-slate-800">{t.packaging}:</strong> {displayData.environmentalImpact.packagingRecyclability}</p></div>
-                            <div className="flex items-start"><Trash2Icon className="w-5 h-5 mr-3 mt-0.5 text-slate-600 flex-shrink-0"/><p><strong className="font-semibold text-slate-800">{t.disposalTip}:</strong> {displayData.environmentalImpact.safeDisposalTip}</p></div>
-                        </div>
-                    </div>
+                            )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white p-6 rounded-xl border border-slate-200">
-                            <div className="flex items-center mb-3">
-                               <HistoryIcon className="w-6 h-6 text-slate-700 mr-3" />
-                               <h3 className="text-lg font-bold text-slate-700">{t.incidentHistory}</h3>
-                            </div>
-                            {displayData.incidents.length > 0 ? (
-                                <ul className="space-y-3 text-sm">
-                                    {displayData.incidents.map((inc, i) => (
-                                        <li key={i} className="p-3 bg-slate-50 rounded-md border border-slate-200">
-                                            <p className="font-semibold">{inc.type} - {inc.date}</p>
-                                            <p className="mt-1 text-slate-600">{inc.summary}</p>
-                                        </li>
+                            <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <div className="flex items-center mb-3">
+                                <ClipboardListIcon className="w-6 h-6 text-slate-700 mr-3" />
+                                <h3 className="text-lg font-bold text-slate-700">{t.ingredientDeepDive} <span className="text-sm font-medium bg-slate-200 text-slate-600 rounded-full px-2 py-0.5 align-middle">{displayData.ingredients.length}</span></h3>
+                                </div>
+                                <div className="space-y-2 -mx-2">
+                                    {displayData.ingredients.map((ing, i) => (
+                                        <div key={i} className="p-2 border-b border-slate-100 last:border-b-0">
+                                            <div className="flex justify-between items-center">
+                                            <div className="flex items-center">
+                                                <span className={`w-3 h-3 rounded-full mr-3 flex-shrink-0 ${riskColorMap[ing.riskLevel]?.dot || 'bg-slate-400'}`}></span>
+                                                <p className="font-semibold text-slate-800">{ing.name}</p>
+                                            </div>
+                                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${riskColorMap[ing.riskLevel]?.bg || 'bg-slate-200'} ${riskColorMap[ing.riskLevel]?.text || 'text-slate-600'}`}>{ing.riskLevel}</span>
+                                            </div>
+                                            <p className="text-sm text-slate-500 mt-1 ml-6">{ing.reason}</p>
+                                        </div>
                                     ))}
-                                </ul>
-                            ) : <p className="text-sm text-slate-500">{t.noIncidents}</p>}
-                        </div>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <div className="flex items-center mb-3">
+                                <LeafIcon className="w-6 h-6 text-slate-700 mr-3" />
+                                <h3 className="text-lg font-bold text-slate-700">{t.environmentalImpact}</h3>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                    <p className="text-slate-600 italic text-center">"{displayData.environmentalImpact.summary}"</p>
+                                    <div className="flex items-start"><RecycleIcon className="w-5 h-5 mr-3 mt-0.5 text-green-600 flex-shrink-0"/><p><strong className="font-semibold text-slate-800">{t.packaging}:</strong> {displayData.environmentalImpact.packagingRecyclability}</p></div>
+                                    <div className="flex items-start"><Trash2Icon className="w-5 h-5 mr-3 mt-0.5 text-slate-600 flex-shrink-0"/><p><strong className="font-semibold text-slate-800">{t.disposalTip}:</strong> {displayData.environmentalImpact.safeDisposalTip}</p></div>
+                                </div>
+                            </div>
 
-                         <div className="bg-white p-6 rounded-xl border border-slate-200">
-                            <div className="flex items-center mb-3">
-                               <StarIcon className="w-6 h-6 text-slate-700 mr-3" />
-                               <h3 className="text-lg font-bold text-slate-700">{t.saferAlternatives}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                    <div className="flex items-center mb-3">
+                                    <HistoryIcon className="w-6 h-6 text-slate-700 mr-3" />
+                                    <h3 className="text-lg font-bold text-slate-700">{t.incidentHistory}</h3>
+                                    </div>
+                                    {displayData.incidents.length > 0 ? (
+                                        <ul className="space-y-3 text-sm">
+                                            {displayData.incidents.map((inc, i) => (
+                                                <li key={i} className="p-3 bg-slate-50 rounded-md border border-slate-200">
+                                                    <p className="font-semibold">{inc.type} - {inc.date}</p>
+                                                    <p className="mt-1 text-slate-600">{inc.summary}</p>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : <p className="text-sm text-slate-500">{t.noIncidents}</p>}
+                                </div>
+
+                                <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                    <div className="flex items-center mb-3">
+                                    <StarIcon className="w-6 h-6 text-slate-700 mr-3" />
+                                    <h3 className="text-lg font-bold text-slate-700">{t.saferAlternatives}</h3>
+                                    </div>
+                                    {displayData.alternatives.length > 0 ? (
+                                    <ul className="space-y-3 text-sm">
+                                            {displayData.alternatives.map((alt, i) => (
+                                                <li key={i} className="p-3 bg-slate-50 rounded-md border border-slate-200">
+                                                    <p className="font-semibold">{alt.name} <span className="font-normal text-slate-500">by {alt.brand}</span></p>
+                                                    <p className="mt-1 text-slate-600">{alt.reason}</p>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : <p className="text-sm text-slate-500">{t.noAlternatives}</p>}
+                                </div>
                             </div>
-                            {displayData.alternatives.length > 0 ? (
-                               <ul className="space-y-3 text-sm">
-                                    {displayData.alternatives.map((alt, i) => (
-                                        <li key={i} className="p-3 bg-slate-50 rounded-md border border-slate-200">
-                                            <p className="font-semibold">{alt.name} <span className="font-normal text-slate-500">by {alt.brand}</span></p>
-                                            <p className="mt-1 text-slate-600">{alt.reason}</p>
-                                        </li>
+                        </>
+                    ) : (
+                        <>
+                            <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-400">
+                                <div className="flex items-center mb-3">
+                                    <AlertTriangleIcon className="w-6 h-6 text-yellow-700 mr-3" />
+                                    <h3 className="text-lg font-bold text-yellow-800">{t.allergenInfo}</h3>
+                                </div>
+                                <div className="space-y-2 text-sm text-yellow-700">
+                                    <p className="italic text-center mb-3">"{displayData.allergens.summary}"</p>
+                                    {displayData.allergens.contains.length > 0 && <p><strong className="font-semibold">{t.allergenContains}:</strong> {displayData.allergens.contains.join(', ')}</p>}
+                                    {displayData.allergens.mayContain.length > 0 && <p><strong className="font-semibold">{t.allergenMayContain}:</strong> {displayData.allergens.mayContain.join(', ')}</p>}
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <div className="flex items-center mb-3">
+                                    <ClipboardListIcon className="w-6 h-6 text-slate-700 mr-3" />
+                                    <h3 className="text-lg font-bold text-slate-700">{t.foodAdditiveAnalysis} <span className="text-sm font-medium bg-slate-200 text-slate-600 rounded-full px-2 py-0.5 align-middle">{displayData.additives.length}</span></h3>
+                                </div>
+                                <div className="space-y-3">
+                                    {displayData.additives.map((add, i) => (
+                                        <div key={i} className="p-3 bg-slate-50/50 rounded-lg border border-slate-100">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex items-center">
+                                                    <span className={`w-3 h-3 rounded-full mr-3 mt-1 flex-shrink-0 ${riskColorMap[add.riskLevel]?.dot || 'bg-slate-400'}`}></span>
+                                                    <p className="font-semibold text-slate-800">{add.name}</p>
+                                                </div>
+                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${riskColorMap[add.riskLevel]?.bg || 'bg-slate-200'} ${riskColorMap[add.riskLevel]?.text || 'text-slate-600'}`}>{add.riskLevel}</span>
+                                            </div>
+                                            <div className="text-sm text-slate-500 mt-1.5 ml-6 space-y-1">
+                                                <p><strong className="text-slate-600">{t.purpose}:</strong> {add.purpose}</p>
+                                                <p><strong className="text-slate-600">{t.reason}:</strong> {add.reason}</p>
+                                                <div>
+                                                    <p><strong className="text-slate-600">{t.permissibleIntakeADI}:</strong> {add.adi}</p>
+                                                    <p className="text-xs text-slate-500 mt-1">{t.adiDescription}</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ))}
-                                </ul>
-                            ) : <p className="text-sm text-slate-500">{t.noAlternatives}</p>}
-                        </div>
-                    </div>
+                                </div>
+                            </div>
+                             <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <div className="flex items-center mb-3">
+                                   <UtensilsCrossedIcon className="w-6 h-6 text-slate-700 mr-3" />
+                                   <h3 className="text-lg font-bold text-slate-700">{t.nutritionalSummary}</h3>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                    <p className="text-slate-600 italic text-center">"{displayData.nutrition.summary}"</p>
+                                    <ul className="space-y-2 list-disc list-inside text-slate-700">
+                                        {displayData.nutrition.keyPoints.map((point, i) => <li key={i}>{point}</li>)}
+                                    </ul>
+                                </div>
+                            </div>
+                             <div className="bg-white p-6 rounded-xl border border-slate-200">
+                                <div className="flex items-center mb-3">
+                                   <StarIcon className="w-6 h-6 text-slate-700 mr-3" />
+                                   <h3 className="text-lg font-bold text-slate-700">{t.saferAlternatives}</h3>
+                                </div>
+                                {displayData.alternatives.length > 0 ? (
+                                   <ul className="space-y-3 text-sm">
+                                        {displayData.alternatives.map((alt, i) => (
+                                            <li key={i} className="p-3 bg-slate-50 rounded-md border border-slate-200">
+                                                <p className="font-semibold">{alt.name} <span className="font-normal text-slate-500">by {alt.brand}</span></p>
+                                                <p className="mt-1 text-slate-600">{alt.reason}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : <p className="text-sm text-slate-500">{t.noAlternatives}</p>}
+                            </div>
+                        </>
+                    )}
 
                     {scannedImageUrls.length > 0 && (
                         <div className="bg-white p-6 rounded-xl border border-slate-200">

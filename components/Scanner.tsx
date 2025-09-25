@@ -1,14 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { CameraIcon, UploadCloudIcon, InfoIcon, XIcon, FileUpIcon } from './Icons';
+import { CameraIcon, UploadCloudIcon, InfoIcon, XIcon, FileUpIcon, BeakerIcon, UtensilsCrossedIcon } from './Icons';
 import { translations } from '../translations';
+import { AnalysisMode } from '../types';
 
 interface ScannerProps {
     onScan: (value: File[]) => void;
     isLoading: boolean;
     language: 'en' | 'ko';
+    analysisMode: AnalysisMode;
+    setAnalysisMode: (mode: AnalysisMode) => void;
 }
 
-const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language }) => {
+const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language, analysisMode, setAnalysisMode }) => {
     const [files, setFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     
@@ -19,7 +22,8 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language }) => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const newFiles = Array.from(e.target.files);
-            const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+            // FIX: Explicitly type the 'file' parameter to resolve a TypeScript error where it was inferred as 'unknown'.
+            const newPreviews = newFiles.map((file: File) => URL.createObjectURL(file));
             setFiles(prev => [...prev, ...newFiles]);
             setImagePreviews(prev => [...prev, ...newPreviews]);
         }
@@ -40,14 +44,33 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language }) => {
         setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
+    const isHouseholdMode = analysisMode === AnalysisMode.Household;
+
     return (
         <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h2 className="text-lg font-semibold text-slate-700 mb-4">{t.scanTitle}</h2>
+            <div className="flex bg-slate-100 p-1 rounded-lg mb-4">
+                <button 
+                    onClick={() => setAnalysisMode(AnalysisMode.Household)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-semibold transition-colors border ${isHouseholdMode ? 'bg-white shadow-sm text-brand-primary border-slate-200' : 'text-slate-600 hover:bg-slate-200 border-transparent'}`}
+                >
+                    <BeakerIcon className="w-5 h-5" />
+                    {t.analysisModeHousehold}
+                </button>
+                <button 
+                    onClick={() => setAnalysisMode(AnalysisMode.Food)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-semibold transition-colors border ${!isHouseholdMode ? 'bg-white shadow-sm text-brand-primary border-slate-200' : 'text-slate-600 hover:bg-slate-200 border-transparent'}`}
+                >
+                    <UtensilsCrossedIcon className="w-5 h-5" />
+                    {t.analysisModeFood}
+                </button>
+            </div>
+            
+            <h2 className="text-lg font-semibold text-slate-700 mb-4">{isHouseholdMode ? t.scanTitle : t.scanFoodTitle}</h2>
 
             <div className="space-y-4">
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-start">
                     <InfoIcon className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-                    <p>{t.multiOcrInfo}</p>
+                    <p>{isHouseholdMode ? t.multiOcrInfo : t.foodScanInfo}</p>
                 </div>
 
                 <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" disabled={isLoading} multiple />

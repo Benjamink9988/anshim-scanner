@@ -23,26 +23,29 @@ export const translations = {
     userManualSections: [
       {
         title: '1. Getting Started',
-        content: "When you first launch the app, you'll see the initial screen for scanning product labels. You can select your preferred language (Korean/English) in the top-right corner."
+        content: "When you first launch the app, you'll see the initial screen for scanning product labels. You can choose an analysis mode ('Household Product' or 'Food') and select your preferred language (Korean/English)."
       },
       {
         title: '2. Scanning and Analyzing a Product Label',
-        content: "1. Prepare Images: Get clear, well-lit photos of the product's ingredient list. For long lists, you can take multiple pictures.\n2. Upload Images: Use 'Upload Image(s)' to select stored photos or 'Take Photo' to use your camera.\n3. Review Previews: Check uploaded images and remove incorrect ones using the 'X' button.\n4. Start Analysis: Click the 'Analyze X Image(s)' button to begin the AI analysis."
+        content: "1. Select Mode: Choose 'Household Product' or 'Food' at the top.\n2. Prepare Images: Get clear, well-lit photos of the product's ingredient list.\n3. Upload Images: Use 'Upload Image(s)' to select stored photos or 'Take Photo' to use your camera.\n4. Review Previews: Check uploaded images and remove incorrect ones using the 'X' button.\n5. Start Analysis: Click the 'Analyze X Image(s)' button to begin."
       },
       {
         title: '3. Understanding the Results',
-        content: "- Key Findings: Get an at-a-glance overview of the product's 'Safety Grade' and 'Eco-Grade' with scores and a summary.\n- Vulnerable Group Analysis: Click buttons like 'Infants' for a personalized analysis based on specific sensitivities.\n- Detailed Information: Explore cards for 'Safety Tips', 'Ingredient Deep Dive', 'Environmental Impact', and more."
+        content: "- Key Findings: Get an at-a-glance overview with scores and a summary.\n- For Household Products: Use 'Vulnerable Group Analysis' for a personalized analysis.\n- For Food: Check for 'Allergen Info', 'Food Additive Analysis', and a 'Nutritional Summary'.\n- Detailed Information: Explore cards for 'Safety Tips', 'Ingredient Deep Dive', and more."
       },
       {
         title: '4. Using the Results and Starting Over',
-        content: "- Save and Share: Use the icons at the bottom to 'Copy Text', 'Save as JPG', or 'Save as TXT'.\n- Start Over: Click the 'Scan Another Product' button to return to the initial screen and analyze a new product."
+        content: "- Save and Share: Use the icons at the bottom to 'Copy Text', 'Save as JPG', or 'Save as TXT'.\n- Start Over: Click the 'Scan Another Product' button to return to the initial screen."
       }
     ],
 
     // Scanner.tsx
+    analysisModeHousehold: "Household Product",
+    analysisModeFood: "Food",
     scanTitle: 'Scan a Product Label',
-    scanModeOcr: 'Scan with Camera (OCR)',
-    multiOcrInfo: 'For best results, upload clear, well-lit photos of the ingredient list. If the list is long, feel free to upload multiple images.',
+    scanFoodTitle: 'Scan a Food Label',
+    multiOcrInfo: 'For best results, upload clear, well-lit photos of the ingredient list for products like cleaners, shampoos, or detergents. If the list is long, feel free to upload multiple images.',
+    foodScanInfo: 'For best results, upload clear, well-lit photos of the ingredient list to check for food additives like aspartame or sodium nitrate. If the list is long, feel free to upload multiple images.',
     imagePreviewAlt: 'Image preview {index}',
     ocrButton: 'Upload Image(s)',
     addPhotoButton: 'Take Photo',
@@ -95,9 +98,22 @@ export const translations = {
         'High Risk': 'Contains ingredients with significant health & safety concerns.',
         'Eco-Friendly': 'Low environmental impact.',
         'Moderate Impact': 'Some environmental concerns identified.',
-        'High Impact': 'Significant environmental impact.'
+        'High Impact': 'Significant environmental impact.',
+        'Good': 'Considered to have a positive nutritional profile.',
+        'Moderate': 'Has both positive and negative nutritional aspects.',
+        'Poor': 'Considered to have a negative nutritional profile.'
     },
-
+    // New Food-specific strings
+    foodSafetyGrade: 'Food Safety Grade',
+    nutritionalGrade: 'Nutritional Grade',
+    allergenInfo: 'Allergen Information',
+    allergenContains: 'Contains',
+    allergenMayContain: 'May Contain',
+    foodAdditiveAnalysis: 'Food Additive Analysis',
+    purpose: 'Purpose',
+    permissibleIntakeADI: 'ADI Note',
+    adiDescription: '(Acceptable Daily Intake: The maximum amount of a substance that can be consumed daily over a lifetime without posing a significant health risk.)',
+    nutritionalSummary: 'Nutritional Summary',
 
     // Actions
     copyReport: 'Copy Text',
@@ -142,26 +158,29 @@ export const translations = {
     userManualSections: [
       {
         title: '1. 시작하기',
-        content: "앱을 처음 실행하면 제품 라벨을 스캔할 수 있는 초기 화면이 나타납니다. 우측 상단에서 언어(한국어/영어)를 선택할 수 있습니다."
+        content: "앱을 처음 실행하면 분석 모드('생활화학제품' 또는 '식품')를 선택하고, 우측 상단에서 언어(한국어/영어)를 선택할 수 있습니다."
       },
       {
         title: '2. 제품 라벨 스캔 및 분석',
-        content: "1. 이미지 준비: 분석할 제품의 성분 목록이 잘 보이도록 선명하고 밝은 사진을 준비합니다. 성분 목록이 길 경우, 여러 장을 촬영해도 좋습니다.\n2. 이미지 업로드: '이미지 업로드' 버튼으로 저장된 사진을 선택하거나, '사진 찍기' 버튼으로 직접 촬영합니다.\n3. 미리보기 확인: 업로드한 이미지를 확인하고, 잘못된 이미지는 'X' 버튼을 눌러 삭제합니다.\n4. 분석 시작: 하단의 'N개 이미지 분석' 버튼을 클릭하여 AI 분석을 시작합니다."
+        content: "1. 모드 선택: 상단에서 '생활화학제품' 또는 '식품'을 선택합니다.\n2. 이미지 준비: 분석할 제품의 성분 목록이 잘 보이도록 선명한 사진을 준비합니다.\n3. 이미지 업로드: '이미지 업로드'로 사진을 선택하거나, '사진 찍기'로 직접 촬영합니다.\n4. 미리보기 확인: 업로드한 이미지를 확인하고, 잘못된 이미지는 'X' 버튼으로 삭제합니다.\n5. 분석 시작: 하단의 'N개 이미지 분석' 버튼을 클릭하여 분석을 시작합니다."
       },
       {
         title: '3. 분석 결과 확인하기',
-        content: "- 주요 분석 결과: 제품의 '안전 등급'과 '환경 등급'을 점수와 요약 설명으로 한눈에 파악합니다.\n- 취약 계층 분석: '영유아', '임산부' 등 특정 그룹 버튼을 클릭하여 해당 그룹에 맞춤화된 분석 결과를 확인합니다.\n- 상세 정보: '안전 사용 가이드', '성분 심층 분석', '환경 영향' 등 카드별 상세 내용을 확인합니다."
+        content: "- 주요 분석 결과: 점수와 요약으로 핵심 정보를 한눈에 파악합니다.\n- 생활화학제품: '취약 계층 분석' 기능으로 맞춤형 분석을 확인합니다.\n- 식품: '알레르기 정보', '식품첨가물 분석', '영양 분석'을 확인합니다.\n- 상세 정보: '안전 사용 가이드', '성분 심층 분석' 등 카드별 상세 내용을 확인합니다."
       },
       {
         title: '4. 결과 활용 및 새로 시작하기',
-        content: "- 결과 저장/공유: 화면 하단 메뉴에서 '텍스트 복사', 'JPG로 저장', 'TXT로 저장' 기능을 사용할 수 있습니다.\n- 새로 시작하기: '다른 제품 스캔하기' 버튼을 눌러 초기 화면으로 돌아갑니다."
+        content: "- 결과 저장/공유: 하단 메뉴에서 '텍스트 복사', 'JPG로 저장', 'TXT로 저장'이 가능합니다.\n- 새로 시작하기: '다른 제품 스캔하기' 버튼을 눌러 초기 화면으로 돌아갑니다."
       }
     ],
 
     // Scanner.tsx
-    scanTitle: '제품 라벨 스캔하기',
-    scanModeOcr: '카메라로 스캔 (OCR)',
-    multiOcrInfo: '정확한 분석을 위해, 밝은 곳에서 촬영한 선명한 성분표 이미지를 업로드해주세요. 성분 목록이 길 경우 여러 장을 촬영해 추가할 수 있습니다.',
+    analysisModeHousehold: "생활화학제품",
+    analysisModeFood: "식품",
+    scanTitle: '생활화학제품 라벨 스캔하기',
+    scanFoodTitle: '식품 라벨 스캔하기',
+    multiOcrInfo: '정확한 분석을 위해, 생활화학제품(예: 세정제, 샴푸, 방향제 등)의 전성분표를 선명하게 촬영하여 업로드해주세요. 성분 목록이 길 경우 여러 장을 추가할 수 있습니다.',
+    foodScanInfo: '정확한 분석을 위해, 식품첨가물(예: 아스파탐, 아질산나트륨 등) 확인을 위한 원재료명 부분을 선명하게 촬영하여 업로드해주세요. 목록이 길 경우 여러 장을 추가할 수 있습니다.',
     imagePreviewAlt: '이미지 미리보기 {index}',
     ocrButton: '이미지 업로드',
     addPhotoButton: '사진 찍기',
@@ -214,9 +233,24 @@ export const translations = {
         'High Risk': '건강 및 안전에 대한 심각한 우려가 있는 성분을 포함합니다.',
         'Eco-Friendly': '환경 영향이 적습니다.',
         'Moderate Impact': '일부 환경적 우려가 확인되었습니다.',
-        'High Impact': '환경에 미치는 영향이 상당합니다.'
+        'High Impact': '환경에 미치는 영향이 상당합니다.',
+        'Good': '긍정적인 영양 프로필을 가지고 있습니다.',
+        'Moderate': '긍정적 및 부정적 영양 측면을 모두 가집니다.',
+        'Poor': '부정적인 영양 프로필을 가지고 있습니다.'
     },
     
+    // New Food-specific strings
+    foodSafetyGrade: '식품 안전 등급',
+    nutritionalGrade: '영양 등급',
+    allergenInfo: '알레르기 정보',
+    allergenContains: '포함',
+    allergenMayContain: '혼입 가능',
+    foodAdditiveAnalysis: '식품첨가물 분석',
+    purpose: '목적',
+    permissibleIntakeADI: 'ADI 정보',
+    adiDescription: '(일일섭취허용량: 평생 동안 매일 섭취해도 건강에 해를 끼치지 않는 것으로 인정되는 최대량)',
+    nutritionalSummary: '영양 분석',
+
     // Actions
     copyReport: '텍스트 복사',
     reportCopied: '복사됨!',
