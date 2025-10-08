@@ -1,19 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { CameraIcon, UploadCloudIcon, InfoIcon, XIcon, FileUpIcon, BeakerIcon, UtensilsCrossedIcon } from './Icons';
+import { CameraIcon, UploadCloudIcon, InfoIcon, XIcon, FileUpIcon } from './Icons';
 import { translations } from '../translations';
-import { AnalysisMode } from '../types';
 
 interface ScannerProps {
-    onScan: (value: File[]) => void;
+    onScan: (value: File[] | string) => void;
     isLoading: boolean;
     language: 'en' | 'ko';
-    analysisMode: AnalysisMode;
-    setAnalysisMode: (mode: AnalysisMode) => void;
 }
 
-const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language, analysisMode, setAnalysisMode }) => {
+const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language }) => {
     const [files, setFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [text, setText] = useState('');
     
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -22,16 +20,27 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language, analysis
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const newFiles = Array.from(e.target.files);
-            // FIX: Explicitly type the 'file' parameter to resolve a TypeScript error where it was inferred as 'unknown'.
             const newPreviews = newFiles.map((file: File) => URL.createObjectURL(file));
             setFiles(prev => [...prev, ...newFiles]);
             setImagePreviews(prev => [...prev, ...newPreviews]);
+            setText(''); // Clear text when files are added
         }
     };
 
-    const handleOcrSubmit = () => {
+    const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setText(e.target.value);
+        if (files.length > 0) {
+            imagePreviews.forEach(url => URL.revokeObjectURL(url));
+            setFiles([]);
+            setImagePreviews([]);
+        }
+    };
+
+    const handleAnalysisSubmit = () => {
         if (files.length > 0) {
             onScan(files);
+        } else if (text.trim()) {
+            onScan(text.trim());
         }
     };
 
@@ -44,33 +53,16 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language, analysis
         setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
-    const isHouseholdMode = analysisMode === AnalysisMode.Household;
+    const canSubmit = !isLoading && (files.length > 0 || text.trim().length > 0);
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-lg">
-            <div className="flex bg-slate-100 p-1 rounded-lg mb-4">
-                <button 
-                    onClick={() => setAnalysisMode(AnalysisMode.Household)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-semibold transition-colors border ${isHouseholdMode ? 'bg-white shadow-sm text-brand-primary border-slate-200' : 'text-slate-600 hover:bg-slate-200 border-transparent'}`}
-                >
-                    <BeakerIcon className="w-5 h-5" />
-                    {t.analysisModeHousehold}
-                </button>
-                <button 
-                    onClick={() => setAnalysisMode(AnalysisMode.Food)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-semibold transition-colors border ${!isHouseholdMode ? 'bg-white shadow-sm text-brand-primary border-slate-200' : 'text-slate-600 hover:bg-slate-200 border-transparent'}`}
-                >
-                    <UtensilsCrossedIcon className="w-5 h-5" />
-                    {t.analysisModeFood}
-                </button>
-            </div>
-            
-            <h2 className="text-lg font-semibold text-slate-700 mb-4">{isHouseholdMode ? t.scanTitle : t.scanFoodTitle}</h2>
+            <h2 className="text-lg font-semibold text-slate-700 mb-4">{t.scanTitle}</h2>
 
             <div className="space-y-4">
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-start">
                     <InfoIcon className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-                    <p>{isHouseholdMode ? t.multiOcrInfo : t.foodScanInfo}</p>
+                    <p>{t.scanInfo}</p>
                 </div>
 
                 <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" disabled={isLoading} multiple />
@@ -104,12 +96,30 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading, language, analysis
                     </button>
                 </div>
 
-                {files.length > 0 && (
-                     <button onClick={handleOcrSubmit} disabled={isLoading} className="w-full bg-brand-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center">
-                        <FileUpIcon className="w-5 h-5 mr-2" />
-                        {t.analyzeButton.replace('{count}', files.length.toString())}
-                    </button>
-                )}
+                <div className="relative flex items-center">
+                    <div className="flex-grow border-t border-slate-200"></div>
+                    <span className="flex-shrink mx-4 text-slate-400 text-sm font-semibold">{t.orDivider}</span>
+                    <div className="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div>
+                    <label htmlFor="text-input" className="block text-sm font-medium text-slate-700 mb-1">{t.textInputLabel}</label>
+                    <textarea
+                        id="text-input"
+                        value={text}
+                        onChange={handleTextChange}
+                        placeholder={t.textInputPlaceholder}
+                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors disabled:bg-slate-50"
+                        rows={3}
+                        disabled={isLoading}
+                        aria-label={t.textInputLabel}
+                    />
+                </div>
+
+                 <button onClick={handleAnalysisSubmit} disabled={!canSubmit} className="w-full bg-brand-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center">
+                    <FileUpIcon className="w-5 h-5 mr-2" />
+                    {files.length > 0 ? t.analyzeButton.replace('{count}', files.length.toString()) : t.analyzeTextButton}
+                </button>
             </div>
         </div>
     );

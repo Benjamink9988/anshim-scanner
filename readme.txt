@@ -1,28 +1,29 @@
 ## 안심 스캐너 (Anshim Scanner) ##
 
-'안심 스캐너'는 Google Gemini AI를 활용하여 생활화학제품 및 식품의 안전성과 환경 영향을 분석해주는 웹 애플리케이션입니다. 제품의 성분표 라벨을 스캔하여 사용자가 정보에 기반한 현명한 결정을 내릴 수 있도록 돕고, 모두가 안심하고 제품을 사용할 수 있는 환경을 만드는 것을 목표로 합니다.
+'안심 스캐너'는 Google Gemini AI를 활용하여 생활화학제품, 식품, 의약품의 성분을 자동으로 분류하고 안전성과 환경 영향을 심층 분석하는 웹 애플리케이션입니다. 제품 라벨을 스캔하여 사용자가 정보에 기반한 현명한 결정을 내릴 수 있도록 돕고, 모두가 안심하고 제품을 사용할 수 있는 환경을 만드는 것을 목표로 합니다.
 
-'안심 (Anshim)'은 한국어로 '마음이 편안하고 걱정이 없는 상태'를 의미합니다. '안심 스캐너'라는 이름은 "이 앱으로 제품을 스캔하여 안전성을 확인하고, 걱정 없이 안심하고 사용하세요"라는 핵심 가치를 전달합니다.
+본 프로젝트는 'AI를 활용한 환경/안전/보건 분야 사회문제 해결'을 주제로 한 공모전 출품작입니다.
 
 --------------------------------------------------
 ### 주요 기능
 --------------------------------------------------
-- 듀얼 분석 모드: '생활화학제품'과 '식품' 두 가지 모드를 제공하여 각 제품 유형에 최적화된 분석을 수행합니다.
-- AI 기반 종합 분석: Gemini AI를 통해 제품의 안전성 점수, 등급, 성분별 위험도, 환경 영향(생활화학제품) 또는 식품첨가물, 알레르기 정보(식품) 등을 포함한 상세 보고서를 생성합니다.
-- 성분 스캔 (OCR): 스마트폰 카메라로 촬영한 성분표 이미지에서 텍스트를 자동 추출하여 분석합니다.
-- 취약 계층 맞춤 분석 (생활화학제품): 영유아, 임산부 등 특정 그룹에 대한 위험도를 재평가하는 심층 분석 기능을 제공합니다.
-- 실용적인 가이드 제공: 위험 등급이 높은 제품의 경우, 위험을 최소화할 수 있는 '안전 사용 가이드'와 '안전한 폐기 방법'을 안내합니다.
-- 다국어 지원: 한국어와 영어를 모두 지원합니다.
-- 결과 공유 및 저장: 분석 결과를 텍스트, JPG 등 다양한 형식으로 복사, 공유, 저장할 수 있습니다.
+- 지능형 자동 분류: AI가 생활화학제품, 식품, 의약품 중 제품 유형을 자동으로 판단하여 최적화된 분석을 제공합니다.
+- 직관적인 위험도 분석: 0-100점 척도의 '위험도 점수(Risk Score)'로 시각화하여 제공합니다. 점수가 높을수록 위험도가 높다는 의미입니다.
+- 3가지 전문 분석 모드:
+  1. 생활화학제품: 성분 유해성, 취약 계층 맞춤 분석, 환경 영향 및 안전한 폐기 방법 분석.
+  2. 식품: 식품첨가물, 알레르기 유발 물질, 영양 프로필 분석.
+  3. 의약품: 활성 성분, 부작용, 금기사항 및 의약품의 올바른 폐기 방법 정보 제공 (의료 자문이 아님).
+- 포괄적인 영향 평가: 사용자의 직접적인 영향뿐만 아니라, 부적절한 폐기로 인한 환경 영향까지 종합적으로 평가합니다.
+- 다국어 지원 및 결과 저장/공유 기능.
 
 --------------------------------------------------
 ### 기술 스택 및 라이선스
 --------------------------------------------------
-본 프로젝트는 공모전 규정을 준수하기 위해 오픈소스 라이선스를 가진 기술만을 사용했습니다.
 - Frontend: React 19, Tailwind CSS (MIT License)
 - AI API: Google Gemini (`gemini-2.5-flash` via `@google/genai`) (Apache 2.0 License)
 - Icons: Lucide (ISC License) 기반의 커스텀 아이콘
 - Language: TypeScript
+- Other Libraries: html2canvas (결과 이미지 저장)
 
 --------------------------------------------------
 ### 실행 방법
@@ -33,47 +34,31 @@
 --------------------------------------------------
 ### 사용자 매뉴얼
 --------------------------------------------------
-'안심 스캐너'는 누구나 쉽게 사용할 수 있도록 직관적으로 설계되었습니다. 아래의 간단한 안내를 따라 제품 분석을 시작해보세요.
-
-1. 시작하기
-- 앱을 처음 실행하면 상단에서 분석 모드('생활화학제품' 또는 '식품')를 선택할 수 있습니다. 우측 상단에서는 언어(한국어/영어)를 선택할 수 있습니다.
-
-2. 제품 라벨 스캔 및 분석
-- 모드 선택: 분석하려는 제품 유형에 맞게 모드를 선택합니다.
-- 이미지 준비: 분석할 제품의 성분 목록이 잘 보이도록 선명하고 밝은 사진을 준비합니다.
-- 이미지 업로드: '이미지 업로드' 버튼으로 저장된 사진을 선택하거나, '사진 찍기' 버튼으로 직접 촬영합니다.
-- 미리보기 확인: 업로드한 이미지를 확인하고, 잘못된 이미지는 'X' 버튼을 눌러 삭제합니다.
-- 분석 시작: 하단의 'N개 이미지 분석' 버튼을 클릭하여 AI 분석을 시작합니다.
-
-3. 분석 결과 확인하기
-- 주요 분석 결과: 제품의 안전 등급과 핵심 요약 정보를 한눈에 파악합니다.
-- 생활화학제품 분석 시: '취약 계층 분석' 기능으로 맞춤형 분석을 확인하고, '안전 사용 가이드', '환경 영향' 등 상세 정보를 제공합니다.
-- 식품 분석 시: '알레르기 정보', '식품첨가물 분석', '영양 분석' 등 식품에 특화된 정보를 제공합니다.
-
-4. 결과 활용 및 새로 시작하기
-- 결과 저장/공유: 화면 하단 메뉴에서 '텍스트 복사', 'JPG로 저장', 'TXT로 저장' 기능을 사용할 수 있습니다.
-- 새로 시작하기: '다른 제품 스캔하기' 버튼을 눌러 초기 화면으로 돌아갑니다.
+1. 시작하기: 제품 성분표 이미지를 업로드하거나 텍스트를 직접 입력합니다.
+2. 자동 분석: '분석' 버튼을 누르면 AI가 제품 유형을 자동 감지하여 분석을 시작합니다.
+3. 결과 확인: '위험도 점수'와 상세 분석 내용을 확인합니다. 어려운 용어는 (i) 아이콘으로 설명을 볼 수 있습니다.
+4. 결과 활용: 하단 버튼으로 결과를 텍스트로 복사하거나, JPG 파일로 저장할 수 있습니다.
 
 --------------------------------------------------
 ### 법적 고지 (Legal Disclaimer)
 --------------------------------------------------
-- 정보 제공 목적: '안심 스캐너'가 제공하는 모든 분석 결과는 Google Gemini AI를 통해 생성된 정보이며, 참고용으로만 제공됩니다.
-- 전문가 조언 대체 불가: 본 앱의 정보는 의학적, 법률적 또는 기타 전문적인 조언을 대체할 수 없습니다. 제품 사용과 관련된 건강상의 우려가 있는 경우, 반드시 의사나 전문가와 상담하시기 바랍니다.
-- 책임의 한계: AI 분석에는 오류나 부정확성이 포함될 수 있습니다. 사용자는 제공된 정보를 바탕으로 내린 모든 결정에 대해 스스로 책임을 져야 하며, 개발팀은 이로 인해 발생하는 어떠한 직간접적인 손해에 대해서도 책임을 지지 않습니다.
+- 본 앱은 공모전 출품을 위한 프로토타입이며, 모든 분석 결과는 참고용으로만 제공됩니다.
+- 본 앱은 의료 자문을 제공하지 않습니다. 의약품 관련 정보는 절대 전문가의 조언을 대체할 수 없으며, 건강 문제는 반드시 의사 또는 약사와 상담하십시오.
+- 제공된 정보에 기반한 모든 결정의 책임은 사용자에게 있습니다.
 
 --------------------------------------------------
 ### English Summary
 --------------------------------------------------
 Project Name: Anshim Scanner
 
-Description: A web application that leverages Google Gemini AI to analyze the safety and impact of household chemical products and food. The name 'Anshim' is Korean for "peace of mind."
+Description: A web application that uses Google Gemini AI to automatically classify and analyze the safety and environmental impact of household products, food, and medicines. This project was created for a competition on "Solving Social Issues with AI."
 
 How to Run:
 1. Download the project files.
 2. Open index.html in a modern web browser (Chrome recommended).
 
 User Manual:
-For detailed instructions, please see our User Guide in the section above or in README.md.
+The app auto-detects product type (household, food, or medicine) from an image or text input. The results are displayed as a Risk Score (higher is riskier) with detailed analysis. For detailed instructions, please see README.md.
 
 Legal Disclaimer:
-- The AI-generated analysis is for informational purposes only and is not a substitute for professional advice. The user assumes all responsibility for decisions made based on this information.
+- This app is a prototype and does not provide medical advice. All AI-generated analysis is for informational purposes only. The user assumes all responsibility for decisions made based on this information.

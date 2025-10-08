@@ -9,6 +9,7 @@ export enum VulnerableMode {
 export enum AnalysisMode {
     Household = 'household',
     Food = 'food',
+    Drug = 'drug',
 }
 
 export interface Product {
@@ -18,8 +19,8 @@ export interface Product {
 }
 
 export interface Analysis {
-    score: number;
-    grade: 'Safe' | 'Caution' | 'High Risk';
+    riskScore: number;
+    grade: 'Low Risk' | 'Caution' | 'High Risk';
     summary: string;
     notes: string;
     mitigationTips: string[];
@@ -31,6 +32,7 @@ export interface Ingredient {
     reason: string;
     concentrationRange?: string;
     hazards?: string[];
+    chemicalFormula?: string;
 }
 
 export interface Incident {
@@ -46,7 +48,7 @@ export interface Alternative {
 }
 
 export interface EnvironmentalImpact {
-    score: number;
+    riskScore: number;
     grade: 'Eco-Friendly' | 'Moderate Impact' | 'High Impact';
     summary: string;
     packagingRecyclability: string;
@@ -71,8 +73,8 @@ export interface FoodProduct {
 }
 
 export interface FoodSafetyAnalysis {
-    score: number;
-    grade: 'Safe' | 'Caution' | 'High Risk';
+    riskScore: number;
+    grade: 'Low Risk' | 'Caution' | 'High Risk';
     summary: string;
     notes: string;
 }
@@ -107,6 +109,46 @@ export interface FoodProductAnalysis {
     alternatives: Alternative[];
 }
 
+export interface DrugProduct {
+    name: string;
+    brand: string;
+    category: string;
+}
+
+export interface DrugSafetyAnalysis {
+    riskScore: number;
+    grade: 'Low Risk' | 'Moderate Risk' | 'High Risk';
+    summary: string;
+    notes: string;
+}
+
+export interface ActiveIngredient {
+    name: string;
+    function: string;
+    riskLevel: 'Low' | 'Moderate' | 'High';
+    reason: string;
+}
+
+export interface SideEffect {
+    name: string;
+    frequency: 'Common' | 'Uncommon' | 'Rare';
+    description: string;
+}
+
+export interface Contraindication {
+    condition: string;
+    reason: string;
+}
+
+export interface DrugProductAnalysis {
+    mode: AnalysisMode.Drug;
+    product: DrugProduct;
+    analysis: DrugSafetyAnalysis;
+    activeIngredients: ActiveIngredient[];
+    sideEffects: SideEffect[];
+    contraindications: Contraindication[];
+    environmentalImpact: EnvironmentalImpact;
+}
 
 export enum ScanMode {
     OCR = 'ocr',

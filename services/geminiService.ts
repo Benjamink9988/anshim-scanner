@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { ProductAnalysis, FoodProductAnalysis, VulnerableMode, AnalysisMode } from "../types";
+import { ProductAnalysis, FoodProductAnalysis, DrugProductAnalysis, VulnerableMode, AnalysisMode } from "../types";
 import { GEMINI_MODEL } from "../constants";
 import { translations } from "../translations";
 
@@ -9,6 +9,7 @@ if (!process.env.API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+// Schemas
 const householdResponseSchema = {
     type: Type.OBJECT,
     properties: {
@@ -18,26 +19,24 @@ const householdResponseSchema = {
             properties: {
                 name: { type: Type.STRING, description: "The full name of the product." },
                 brand: { type: Type.STRING, description: "The brand name of the product." },
-                category: { type: Type.STRING, description: "e.g., 'All-Purpose Cleaner', 'Shampoo', 'Laundry Detergent'." },
+                category: { type: Type.STRING, description: "e.g., 'All-Purpose Cleaner', 'Shampoo'." },
             },
              required: ["name", "brand", "category"],
         },
         analysis: {
             type: Type.OBJECT,
             properties: {
-                score: { type: Type.INTEGER, description: "Overall safety score from 0 (most hazardous) to 100 (safest)." },
-                grade: { type: Type.STRING, description: "A grade based on the score: 'Safe', 'Caution', or 'High Risk'." },
-                summary: { type: Type.STRING, description: "A concise, 3-sentence summary of the key findings for a layperson." },
-                notes: { type: Type.STRING, description: "Any uncertainties, missing ingredients, or assumptions made during analysis. If none, state 'No specific issues to note.'" },
+                riskScore: { type: Type.INTEGER, description: "Overall risk score from 0 (safest) to 100 (most hazardous)." },
+                grade: { type: Type.STRING, description: "'Low Risk', 'Caution', or 'High Risk'." },
+                summary: { type: Type.STRING, description: "A concise, 3-sentence summary of the key findings." },
+                notes: { type: Type.STRING, description: "Any uncertainties or assumptions made. If none, state 'No specific issues to note.'" },
                 mitigationTips: {
                     type: Type.ARRAY,
-                    description: "If the product grade is 'Caution' or 'High Risk', provide a list of 2-4 actionable tips for users to minimize exposure and risk (e.g., 'Ensure good ventilation during use', 'Wear gloves to avoid skin contact', 'Rinse surfaces thoroughly after use'). If the grade is 'Safe', return an empty array.",
-                    items: {
-                        type: Type.STRING
-                    }
+                    description: "If grade is 'Caution' or 'High Risk', provide 2-4 actionable tips for users to minimize exposure and risk. If 'Low Risk', return an empty array.",
+                    items: { type: Type.STRING }
                 }
             },
-            required: ["score", "grade", "summary", "notes", "mitigationTips"],
+            required: ["riskScore", "grade", "summary", "notes", "mitigationTips"],
         },
         ingredients: {
             type: Type.ARRAY,
@@ -48,65 +47,33 @@ const householdResponseSchema = {
                     name: { type: Type.STRING },
                     riskLevel: { type: Type.STRING, description: "'Low', 'Moderate', or 'High'" },
                     reason: { type: Type.STRING, description: "Brief explanation of the ingredient's potential risks." },
-                    concentrationRange: { type: Type.STRING, description: "Typical concentration range in this type of product, e.g., '0.1% - 1%'. Can be 'N/A' if not applicable or unknown." },
-                    hazards: {
-                        type: Type.ARRAY,
-                        description: "List of specific hazard classifications, e.g., 'Skin Irritant', 'Carcinogen', 'Endocrine Disruptor'. Return an empty array if none apply.",
-                        items: {
-                            type: Type.STRING,
-                        }
-                    }
+                    chemicalFormula: { type: Type.STRING, description: "The chemical formula (e.g., 'H2O'). If not applicable or unknown, this can be omitted." }
                 },
                 required: ["name", "riskLevel", "reason"],
             }
         },
-        incidents: {
-            type: Type.ARRAY,
-            description: "List of past recalls, violations, or accidents associated with the product or manufacturer. If none are found, return an empty array.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    type: { type: Type.STRING, description: "'Recall', 'Violation', or 'Accident'" },
-                    date: { type: Type.STRING, description: "Date of the incident (YYYY-MM-DD)." },
-                    summary: { type: Type.STRING, description: "A short summary of the incident." }
-                },
-                required: ["type", "date", "summary"],
-            }
+        environmentalImpact: {
+            type: Type.OBJECT,
+            properties: {
+                riskScore: { type: Type.INTEGER, description: "Environmental risk score from 0 (most eco-friendly) to 100 (most harmful)." },
+                grade: { type: Type.STRING, description: "'Eco-Friendly', 'Moderate Impact', or 'High Impact'." },
+                summary: { type: Type.STRING, description: "A concise, 2-3 sentence summary of the environmental findings, including disposal risks." },
+                packagingRecyclability: { type: Type.STRING, description: "Description of the packaging's recyclability." },
+                safeDisposalTip: { type: Type.STRING, description: "A brief, actionable tip on how to safely dispose of the product and its packaging to minimize environmental harm." }
+            },
+            required: ["riskScore", "grade", "summary", "packagingRecyclability", "safeDisposalTip"],
         },
         alternatives: {
             type: Type.ARRAY,
-            description: "Up to 3 recommended safer alternative products.",
+            description: "If risk is high, recommend 2-3 safer products. If risk is low, return an empty array.",
             items: {
                 type: Type.OBJECT,
-                properties: {
-                    name: { type: Type.STRING },
-                    brand: { type: Type.STRING },
-                    reason: { type: Type.STRING, description: "Why this alternative is considered safer (e.g., 'Fragrance-free', 'Uses plant-based surfactants', 'Fully recyclable packaging')." }
-                },
+                properties: { name: { type: Type.STRING }, brand: { type: Type.STRING }, reason: { type: Type.STRING, description: "A brief reason why this alternative is safer." } },
                 required: ["name", "brand", "reason"],
             }
         },
-        environmentalImpact: {
-            type: Type.OBJECT,
-            description: "Analysis of the product's environmental impact.",
-            properties: {
-                score: { type: Type.INTEGER, description: "Overall environmental score from 0 (most harmful) to 100 (most eco-friendly)." },
-                grade: { type: Type.STRING, description: "A grade based on the score: 'Eco-Friendly', 'Moderate Impact', or 'High Impact'." },
-                summary: { type: Type.STRING, description: "A concise, 2-3 sentence summary of the environmental findings." },
-                packagingRecyclability: { type: Type.STRING, description: "Description of the packaging's recyclability (e.g., 'Fully recyclable PET bottle', 'Mixed materials, difficult to recycle')." },
-                keyFactors: {
-                    type: Type.ARRAY,
-                    description: "List of key factors influencing the environmental score, both positive and negative (e.g., 'Contains biodegradable surfactants', 'Uses non-recyclable packaging').",
-                    items: {
-                        type: Type.STRING,
-                    }
-                },
-                safeDisposalTip: { type: Type.STRING, description: "A brief, actionable tip on how to safely and responsibly dispose of the product and its packaging." }
-            },
-            required: ["score", "grade", "summary", "packagingRecyclability", "keyFactors", "safeDisposalTip"],
-        }
     },
-    required: ["mode", "product", "analysis", "ingredients", "incidents", "alternatives", "environmentalImpact"],
+    required: ["mode", "product", "analysis", "ingredients", "environmentalImpact", "alternatives"],
 };
 
 const foodResponseSchema = {
@@ -116,67 +83,58 @@ const foodResponseSchema = {
         product: {
             type: Type.OBJECT,
             properties: {
-                name: { type: Type.STRING, description: "The full name of the food product." },
-                brand: { type: Type.STRING, description: "The brand name of the food product." },
-                category: { type: Type.STRING, description: "e.g., 'Snack', 'Beverage', 'Instant Noodle'." },
+                name: { type: Type.STRING }, brand: { type: Type.STRING }, category: { type: Type.STRING },
             },
             required: ["name", "brand", "category"],
         },
         analysis: {
             type: Type.OBJECT,
             properties: {
-                score: { type: Type.INTEGER, description: "Overall food safety score from 0 (most hazardous) to 100 (safest), focusing on additives and contaminants." },
-                grade: { type: Type.STRING, description: "A grade based on the score: 'Safe', 'Caution', or 'High Risk'." },
-                summary: { type: Type.STRING, description: "A concise, 3-sentence summary of the key findings about food safety and additives." },
-                notes: { type: Type.STRING, description: "Any uncertainties or assumptions made. If none, state 'No specific issues to note.'" },
+                riskScore: { type: Type.INTEGER, description: "Overall food safety risk score (0-100) focusing on additives and contaminants." },
+                grade: { type: Type.STRING, description: "'Low Risk', 'Caution', or 'High Risk'." },
+                summary: { type: Type.STRING },
+                notes: { type: Type.STRING },
             },
-            required: ["score", "grade", "summary", "notes"],
+            required: ["riskScore", "grade", "summary", "notes"],
         },
         additives: {
             type: Type.ARRAY,
-            description: "List of all identified food additives with their risk assessment.",
             items: {
                 type: Type.OBJECT,
                 properties: {
                     name: { type: Type.STRING },
                     riskLevel: { type: Type.STRING, description: "'Low', 'Moderate', 'High', or 'Unknown'" },
-                    reason: { type: Type.STRING, description: "Brief explanation of the additive's potential risks or function." },
-                    purpose: { type: Type.STRING, description: "The primary function of the additive, e.g., 'Preservative', 'Artificial Color', 'Emulsifier'." },
-                    adi: { type: Type.STRING, description: "Note on the Acceptable Daily Intake (ADI), e.g., 'Considered safe in small amounts', 'High consumption should be avoided'.", "default": "N/A" }
+                    reason: { type: Type.STRING },
+                    purpose: { type: Type.STRING },
+                    adi: { type: Type.STRING, description: "Note on the Acceptable Daily Intake (ADI)." }
                 },
-                required: ["name", "riskLevel", "reason", "purpose"],
+                required: ["name", "riskLevel", "reason", "purpose", "adi"],
             }
         },
         allergens: {
             type: Type.OBJECT,
-            description: "Information on allergens present in the product.",
             properties: {
-                contains: { type: Type.ARRAY, description: "List of allergens explicitly listed as contained in the product (e.g., 'Milk', 'Soybean', 'Wheat').", items: { type: Type.STRING } },
-                mayContain: { type: Type.ARRAY, description: "List of allergens that may be present due to cross-contamination (e.g., 'May contain traces of nuts').", items: { type: Type.STRING } },
-                summary: { type: Type.STRING, description: "A brief summary of the allergen situation for this product." }
+                contains: { type: Type.ARRAY, items: { type: Type.STRING } },
+                mayContain: { type: Type.ARRAY, items: { type: Type.STRING } },
+                summary: { type: Type.STRING }
             },
             required: ["contains", "mayContain", "summary"],
         },
         nutrition: {
             type: Type.OBJECT,
-            description: "A brief, qualitative analysis of the product's nutritional profile.",
             properties: {
-                grade: { type: Type.STRING, description: "A qualitative grade: 'Good', 'Moderate', or 'Poor'." },
-                summary: { type: Type.STRING, description: "A 2-3 sentence summary of the nutritional aspects (e.g., high in sugar, good source of protein)." },
-                keyPoints: { type: Type.ARRAY, description: "A list of 2-4 key nutritional highlights or concerns.", items: { type: Type.STRING } }
+                grade: { type: Type.STRING, description: "'Good', 'Moderate', or 'Poor'." },
+                summary: { type: Type.STRING },
+                keyPoints: { type: Type.ARRAY, items: { type: Type.STRING } }
             },
             required: ["grade", "summary", "keyPoints"],
         },
         alternatives: {
             type: Type.ARRAY,
-            description: "Up to 3 recommended healthier alternative food products.",
+            description: "If risk is high, recommend 2-3 safer products. If risk is low, return an empty array.",
             items: {
                 type: Type.OBJECT,
-                properties: {
-                    name: { type: Type.STRING },
-                    brand: { type: Type.STRING },
-                    reason: { type: Type.STRING, description: "Why this alternative is considered healthier (e.g., 'No artificial additives', 'Lower in sodium', 'Organic ingredients')." }
-                },
+                properties: { name: { type: Type.STRING }, brand: { type: Type.STRING }, reason: { type: Type.STRING, description: "A brief reason why this alternative is safer." } },
                 required: ["name", "brand", "reason"],
             }
         },
@@ -184,94 +142,146 @@ const foodResponseSchema = {
     required: ["mode", "product", "analysis", "additives", "allergens", "nutrition", "alternatives"],
 };
 
-
-const buildHouseholdPrompt = (
-    vulnerableModes: VulnerableMode[] = [],
-    language: 'en' | 'ko' = 'en'
-) => {
-    const t = translations[language];
-    const translatedModes = vulnerableModes.map(mode => t.vulnerableModes[mode]);
-
-    const modeText = translatedModes.length > 0
-        ? (language === 'ko' 
-            ? `다음 취약 그룹에 대한 위험에 특히 주의하세요: ${translatedModes.join(', ')}.`
-            : `Pay special attention to risks concerning the following vulnerable groups: ${translatedModes.join(', ')}.`)
-        : (language === 'ko' ? "일반적인 위험성 평가를 수행하세요." : "Perform a general risk assessment.");
-    
-    const inputInstruction = language === 'ko'
-        ? `제공된 제품 라벨 이미지에서 모든 텍스트를 먼저 꼼꼼하게 추출(OCR)하세요. 그 다음, 추출된 텍스트에서 '전성분', '원재료명' 또는 이와 유사한 섹션을 찾아 성분 목록을 식별하세요. 이 식별된 성분 목록을 기반으로 제품을 분석해야 합니다.`
-        : `First, meticulously extract all visible text from the provided product label image(s) using OCR. Then, from that extracted text, identify the ingredient list, which may be under a heading like 'Ingredients', 'Full Ingredients', or a similar section. Your analysis must be based on this identified ingredient list.`;
-
-    const mainInstruction = language === 'ko'
-        ? "점수, 성분 분석, 사고 이력, 더 안전한 대안, 그리고 환경 영향을 포함한 포괄적인 안전성 분석을 제공하세요. 환경 영향 분석에는 환경 점수, 포장재 재활용성, 주요 성분의 환경 영향 평가 및 안전한 폐기 방법이 포함되어야 합니다. 대안 제품은 인체에 더 안전하고 환경 친화적인 제품을 추천해주세요. 만약 제품이 '주의' 또는 '고위험' 등급으로 평가된다면, 위험을 최소화할 수 있는 구체적인 사용 방법(예: '사용 시 환기 필수', '피부 접촉 방지를 위해 장갑 착용', '사용 후 깨끗한 물로 충분히 헹구기')을 2-4가지 제안해주세요."
-        : "Provide a comprehensive safety and environmental analysis, including a safety score, ingredient breakdown, incident history, safer alternatives, and an environmental impact report. The environmental report should include an eco-score, an assessment of packaging recyclability, the environmental effects of key ingredients, and a safe disposal tip. For alternatives, recommend products that are safer for humans and also eco-friendly. If the product is graded as 'Caution' or 'High Risk', provide 2-4 specific, actionable tips on how to use it to minimize risks (e.g., 'Ensure good ventilation during use', 'Wear gloves to avoid skin contact', 'Rinse surfaces thoroughly after use').";
-
-    return `${inputInstruction} \n${modeText} \n${mainInstruction}`;
+const drugResponseSchema = {
+    type: Type.OBJECT,
+    properties: {
+        mode: { type: Type.STRING, description: "The analysis mode, always 'drug'." },
+        product: {
+            type: Type.OBJECT,
+            properties: { name: { type: Type.STRING }, brand: { type: Type.STRING }, category: { type: Type.STRING, description: "e.g., 'Pain Reliever', 'Cold Medicine'." } },
+            required: ["name", "brand", "category"],
+        },
+        analysis: {
+            type: Type.OBJECT,
+            properties: {
+                riskScore: { type: Type.INTEGER, description: "Overall risk score (0-100) based on side effects, contraindications, and active ingredients." },
+                grade: { type: Type.STRING, description: "'Low Risk', 'Moderate Risk', or 'High Risk'." },
+                summary: { type: Type.STRING, description: "A concise summary for a layperson. MUST start with a disclaimer: 'This is not medical advice. Consult a doctor or pharmacist.'" },
+                notes: { type: Type.STRING },
+            },
+            required: ["riskScore", "grade", "summary", "notes"],
+        },
+        activeIngredients: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    name: { type: Type.STRING },
+                    function: { type: Type.STRING, description: "What this ingredient does (e.g., 'Pain relief', 'Reduces fever')." },
+                    riskLevel: { type: Type.STRING, description: "'Low', 'Moderate', or 'High'" },
+                    reason: { type: Type.STRING, description: "Brief explanation of the ingredient's potential risks." },
+                },
+                required: ["name", "function", "riskLevel", "reason"],
+            }
+        },
+        sideEffects: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    name: { type: Type.STRING, description: "e.g., 'Drowsiness', 'Nausea'." },
+                    frequency: { type: Type.STRING, description: "'Common', 'Uncommon', or 'Rare'." },
+                    description: { type: Type.STRING, description: "Brief description of the side effect's common symptoms or implications (e.g., 'May cause lightheadedness or sleepiness')." },
+                },
+                required: ["name", "frequency", "description"],
+            }
+        },
+        contraindications: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    condition: { type: Type.STRING, description: "A condition, or other drug that is unsafe to take with this one (e.g., 'Pregnancy', 'Alcohol', 'Aspirin')." },
+                    reason: { type: Type.STRING, description: "Why it is unsafe." },
+                },
+                required: ["condition", "reason"],
+            }
+        },
+        environmentalImpact: {
+            type: Type.OBJECT,
+            properties: {
+                riskScore: { type: Type.INTEGER, description: "Environmental risk score from 0 to 100, focusing on the harm of improper disposal." },
+                grade: { type: Type.STRING, description: "'Eco-Friendly', 'Moderate Impact', or 'High Impact'." },
+                summary: { type: Type.STRING },
+                packagingRecyclability: { type: Type.STRING },
+                safeDisposalTip: { type: Type.STRING, description: "Crucial instructions on how to dispose of unused medicine safely (e.g., 'Do not flush down the toilet. Return to a pharmacy for proper disposal.')." }
+            },
+            required: ["riskScore", "grade", "summary", "packagingRecyclability", "safeDisposalTip"],
+        }
+    },
+    required: ["mode", "product", "analysis", "activeIngredients", "sideEffects", "contraindications", "environmentalImpact"],
 };
 
-export const analyzeProduct = async (
-    images: { data: string; mimeType: string }[],
-    language: 'en' | 'ko' = 'en',
-): Promise<ProductAnalysis> => {
+
+// Helper function to get language-specific instructions
+const getLangInstruction = (language: 'en' | 'ko') => language === 'ko'
+    ? "The entire analysis and all text fields in the JSON response must be in Korean (한국어)."
+    : "The entire analysis and all text fields in the JSON response must be in English.";
+
+// New classification service
+export const classifyInput = async (text: string): Promise<AnalysisMode> => {
     try {
-        const langInstruction = language === 'ko' 
-            ? "The entire analysis and all text fields in the JSON response must be in Korean (한국어)."
-            : "The entire analysis and all text fields in the JSON response must be in English.";
-
-        const systemInstruction = `You are an expert household product safety and environmental analyst. Your task is to analyze product ingredients based on the provided information. You must return a detailed analysis in a structured JSON format that adheres strictly to the provided schema. Do not output markdown. Prioritize safety. If information is missing or ambiguous, state it clearly in the 'notes' field and provide a conservative (higher risk) score. Ensure the 'mode' field in the JSON is set to 'household'. ${langInstruction}`;
-
-        const userPrompt = buildHouseholdPrompt([], language);
+        const systemInstruction = "You are a product classification expert. Analyze the provided text from a product label and classify it into one of three categories: 'household' (for cleaners, soaps, detergents, etc.), 'food' (for edible items), or 'drug' (for medicines, pharmaceuticals, ointments). Respond with ONLY the lowercase category name and nothing else.";
         
-        const contents = { parts: [{ text: userPrompt }, ...images.map(image => ({ inlineData: { data: image.data, mimeType: image.mimeType } }))] };
-
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: GEMINI_MODEL,
-            contents,
+            contents: `Classify the product based on these ingredients: ${text}`,
             config: {
-                responseMimeType: "application/json",
-                responseSchema: householdResponseSchema,
                 systemInstruction: systemInstruction,
+                temperature: 0,
             },
         });
         
-        const jsonString = response.text;
-        if (!jsonString) {
-          throw new Error("Received an empty response from the API.");
-        }
+        const result = response.text.trim().toLowerCase();
 
-        const parsedJson = JSON.parse(jsonString);
-        return parsedJson as ProductAnalysis;
+        if (result === 'household' || result === 'food' || result === 'drug') {
+            return result as AnalysisMode;
+        }
+        // Fallback for unexpected responses
+        console.warn(`Unexpected classification result: '${result}'. Defaulting to 'household'.`);
+        return AnalysisMode.Household;
 
     } catch (error) {
-        console.error("Error analyzing product:", error);
-        throw new Error("Failed to analyze product. The model may have returned an invalid response.");
+        console.error("Error classifying input:", error);
+        throw new Error("Failed to classify product type.");
     }
 };
 
-export const analyzeFoodProduct = async (
-    images: { data: string; mimeType: string }[],
-    language: 'en' | 'ko' = 'en',
-): Promise<FoodProductAnalysis> => {
+// New OCR helper
+export const extractTextFromImage = async (image: { data: string; mimeType: string }): Promise<string> => {
     try {
-        const langInstruction = language === 'ko'
-            ? "The entire analysis and all text fields in the JSON response must be in Korean (한국어)."
-            : "The entire analysis and all text fields in the JSON response must be in English.";
-
-        const systemInstruction = `You are an expert food safety analyst and nutritionist. Your task is to analyze food product labels. Extract ingredients, paying close attention to food additives. Analyze their safety, purpose, and mention ADI (Acceptable Daily Intake) where relevant. Identify allergens. Provide a qualitative nutritional summary. You must return a detailed analysis in a structured JSON format that adheres strictly to the provided schema. Do not output markdown. If information is ambiguous, state it in the 'notes' field and provide a conservative (higher risk) score. Ensure the 'mode' field in the JSON is set to 'food'. ${langInstruction}`;
-        
-        const userPrompt = language === 'ko'
-            ? `제공된 식품 라벨 이미지에서 '원재료명' 또는 '성분' 목록을 꼼꼼하게 추출하세요. 이 성분 목록을 기반으로, 식품첨가물의 안전성, 사용 목적, 일일섭취허용량(ADI) 관련 정보, 알레르기 유발 물질, 그리고 전반적인 영양 프로필을 분석해주세요. 더 건강한 대안 제품이 있다면 3개까지 추천해주세요.`
-            : `Meticulously extract the 'ingredients' list from the provided food label image(s). Based on this list, analyze the safety of food additives, their purpose, and any relevant information on Acceptable Daily Intake (ADI). Identify potential allergens and provide a general nutritional profile. Recommend up to 3 healthier alternative products.`;
-
-        const contents = { parts: [{ text: userPrompt }, ...images.map(image => ({ inlineData: { data: image.data, mimeType: image.mimeType } }))] };
-
-        const response: GenerateContentResponse = await ai.models.generateContent({
+        const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
+            contents: {
+                parts: [
+                    { text: "Extract all text from this image." },
+                    { inlineData: { data: image.data, mimeType: image.mimeType } }
+                ]
+            }
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error extracting text from image:", error);
+        throw new Error("Failed to read text from image.");
+    }
+};
+
+
+// Unified Analysis Functions
+const performAnalysis = async (
+    contents: any,
+    schema: object,
+    systemInstruction: string,
+    model: string = GEMINI_MODEL
+): Promise<any> => {
+    try {
+        const response = await ai.models.generateContent({
+            model,
             contents,
             config: {
                 responseMimeType: "application/json",
-                responseSchema: foodResponseSchema,
-                systemInstruction: systemInstruction,
+                responseSchema: schema,
+                systemInstruction,
             },
         });
 
@@ -279,16 +289,30 @@ export const analyzeFoodProduct = async (
         if (!jsonString) {
             throw new Error("Received an empty response from the API.");
         }
-
-        const parsedJson = JSON.parse(jsonString);
-        return parsedJson as FoodProductAnalysis;
-
+        return JSON.parse(jsonString);
     } catch (error) {
-        console.error("Error analyzing food product:", error);
-        throw new Error("Failed to analyze food product. The model may have returned an invalid response.");
+        console.error("Analysis Error:", error);
+        throw new Error("The model failed to return a valid analysis. Please try again.");
     }
 };
 
+export const analyzeProductFromText = (text: string, lang: 'en' | 'ko'): Promise<ProductAnalysis> => {
+    const systemInstruction = `You are an expert household product safety and environmental analyst. Your primary goal is to assess RISK. A high score means HIGH RISK. Analyze ingredients from user text, including their chemical formula where applicable. Crucially, evaluate the environmental impact of improper disposal (e.g., pouring down the drain). If the overall risk is 'Caution' or 'High Risk', recommend 2-3 safer alternative products. Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
+    const userPrompt = `Analyze the following ingredients list for a household product. Focus on user safety and environmental risk, including from improper disposal:\n\n${text}`;
+    return performAnalysis(userPrompt, householdResponseSchema, systemInstruction);
+};
+
+export const analyzeFoodProductFromText = (text: string, lang: 'en' | 'ko'): Promise<FoodProductAnalysis> => {
+    const systemInstruction = `You are a food safety expert. Analyze the provided food ingredients. Assess risks from additives and identify allergens. Provide a nutritional overview. If the overall risk is 'Caution' or 'High Risk', recommend 2-3 safer alternative products. Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
+    const userPrompt = `Analyze the following ingredients list for a food product:\n\n${text}`;
+    return performAnalysis(userPrompt, foodResponseSchema, systemInstruction);
+};
+
+export const analyzeDrugFromText = (text: string, lang: 'en' | 'ko'): Promise<DrugProductAnalysis> => {
+    const systemInstruction = `You are an expert pharmaceutical analyst. Your analysis is for informational purposes ONLY and is NOT medical advice. Assess risks based on active ingredients, side effects, and contraindications. CRITICALLY, provide safe disposal instructions to prevent environmental contamination. The summary MUST start with a disclaimer. Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
+    const userPrompt = `Analyze the following ingredients list for a medicinal drug. Provide a risk assessment and safe disposal instructions:\n\n${text}`;
+    return performAnalysis(userPrompt, drugResponseSchema, systemInstruction);
+};
 
 export const refineAnalysis = async (
     currentAnalysis: ProductAnalysis,
@@ -299,36 +323,15 @@ export const refineAnalysis = async (
         const t = translations[language];
         const translatedMode = t.vulnerableModes[vulnerableMode];
 
-        const langInstruction = language === 'ko' 
-            ? "The entire analysis and all text fields in the JSON response must be in Korean (한국어)."
-            : "The entire analysis and all text fields in the JSON response must be in English.";
-
-        const systemInstruction = `You are an expert household product safety analyst. Your task is to re-evaluate an existing product analysis for a specific vulnerable group. You must return a complete, updated analysis in a structured JSON format that adheres strictly to the provided schema. Do not output markdown. Base your refined analysis ONLY on the ingredients and product details provided in the original analysis JSON. Adjust the safety score, grade, summary, and ingredient risks as necessary to reflect the heightened sensitivity for this group. The environmental analysis should remain unchanged from the original. ${langInstruction}`;
+        const systemInstruction = `You are an expert household product safety analyst. Re-evaluate an existing analysis for a specific vulnerable group. A higher score means a higher risk. Adjust the riskScore, grade, summary, and ingredient risks to reflect heightened sensitivity. Ensure the chemical formula for each ingredient is included if available. The environmental analysis and alternatives should remain unchanged. Return a complete, updated JSON response. ${getLangInstruction(language)}`;
         
-        const userPrompt = language === 'ko'
-            ? `기존 제품 분석 정보는 다음과 같습니다. 이 분석을 [${translatedMode}] 그룹에 대한 위험에 초점을 맞춰 다시 평가해주세요. 점수, 등급, 요약, 성분 위험도를 이 그룹에 맞게 조정하여 전체 JSON 응답을 다시 생성해주세요. 만약 재평가된 등급이 '주의'나 '고위험'이라면, 해당 그룹을 위해 위험을 최소화할 수 있는 구체적인 안전 수칙도 포함해주세요.\n\n기존 분석:\n${JSON.stringify(currentAnalysis)}`
-            : `Here is the existing product analysis. Please re-evaluate it, focusing specifically on the risks for the [${translatedMode}] group. Regenerate the entire JSON response, adjusting the score, grade, summary, and ingredient risk levels to be appropriate for this group. If the re-evaluated grade is 'Caution' or 'High Risk', also include specific safety tips to minimize risks for this group.\n\nOriginal Analysis:\n${JSON.stringify(currentAnalysis)}`;
+        const userPrompt = `Re-evaluate this analysis for the [${translatedMode}] group. Adjust risks accordingly. Original Analysis:\n${JSON.stringify(currentAnalysis)}`;
 
-        const response: GenerateContentResponse = await ai.models.generateContent({
-            model: GEMINI_MODEL,
-            contents: userPrompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: householdResponseSchema,
-                systemInstruction: systemInstruction,
-            },
-        });
-        
-        const jsonString = response.text;
-        if (!jsonString) {
-          throw new Error("Received an empty response from the API.");
-        }
-
-        const parsedJson = JSON.parse(jsonString);
+        const parsedJson = await performAnalysis(userPrompt, householdResponseSchema, systemInstruction);
         return parsedJson as ProductAnalysis;
 
     } catch (error) {
         console.error("Error refining analysis:", error);
-        throw new Error(`Failed to refine analysis for ${vulnerableMode}. The model may have returned an invalid response.`);
+        throw new Error(`Failed to refine analysis for ${vulnerableMode}.`);
     }
 }

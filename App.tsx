@@ -4,66 +4,107 @@ import ResultDisplay from './components/ResultDisplay';
 import Spinner from './components/Spinner';
 import DisclaimerModal from './components/DisclaimerModal';
 import UserManualModal from './components/UserManualModal';
-import { ProductAnalysis, FoodProductAnalysis, AnalysisMode } from './types';
-import { analyzeProduct, analyzeFoodProduct } from './services/geminiService';
+import { ProductAnalysis, FoodProductAnalysis, DrugProductAnalysis, AnalysisMode } from './types';
+import { 
+  classifyInput, 
+  extractTextFromImage,
+  analyzeProductFromText, 
+  analyzeFoodProductFromText,
+  analyzeDrugFromText
+} from './services/geminiService';
 import { fileToBase64, fileToDataUrl } from './utils/imageHelper';
 import { translations } from './translations';
 
+type AnalysisResult = ProductAnalysis | FoodProductAnalysis | DrugProductAnalysis;
+
 const App: React.FC = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [analysisResult, setAnalysisResult] = useState<ProductAnalysis | FoodProductAnalysis | null>(null);
+  const [loadingState, setLoadingState] = useState<{
+    isLoading: boolean;
+    messageKey: keyof typeof translations['en'] | null;
+  }>({ isLoading: false, messageKey: null });
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<'en' | 'ko'>('ko');
   const [scannedImageUrls, setScannedImageUrls] = useState<string[]>([]);
   const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
   const [isUserManualVisible, setIsUserManualVisible] = useState(false);
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(AnalysisMode.Household);
-
 
   const t = translations[language];
 
-  const handleScan = useCallback(async (value: File[]) => {
-    setIsLoading(true);
+  const handleScan = useCallback(async (value: File[] | string) => {
+    setLoadingState({ isLoading: true, messageKey: 'loadingText_contacting' });
     setAnalysisResult(null);
     setError(null);
     setScannedImageUrls([]);
 
     try {
-      let result: ProductAnalysis | FoodProductAnalysis;
-      if (Array.isArray(value) && value.length > 0) {
+      let inputText: string;
+      
+      if (typeof value === 'string') {
+        inputText = value;
+      } else if (Array.isArray(value) && value.length > 0) {
         const previewUrls = await Promise.all(value.map(fileToDataUrl));
         setScannedImageUrls(previewUrls);
 
-        const imageParts = await Promise.all(
-          value.map(async (file) => {
-            const base64Data = await fileToBase64(file);
-            return { data: base64Data, mimeType: file.type };
-          })
-        );
+        // For simplicity, we'll OCR the first image to get text for classification.
+        const firstFile = value[0];
+        const base64Data = await fileToBase64(firstFile);
+        const imagePart = { data: base64Data, mimeType: firstFile.type };
+        inputText = await extractTextFromImage(imagePart);
         
-        if (analysisMode === AnalysisMode.Household) {
-          result = await analyzeProduct(imageParts, language);
-        } else {
-          result = await analyzeFoodProduct(imageParts, language);
+        if (!inputText.trim()) {
+           // Combine all images to get text
+            const allText = await Promise.all(value.map(async (file) => {
+                const b64 = await fileToBase64(file);
+                return extractTextFromImage({ data: b64, mimeType: file.type });
+            }));
+            inputText = allText.join('\n');
         }
 
       } else {
-        throw new Error("No image files were provided for analysis.");
+        throw new Error("No image files or text were provided for analysis.");
       }
+
+      if (!inputText.trim()) {
+        throw new Error("Could not extract any text from the provided images. Please try again with clearer pictures.");
+      }
+
+      setLoadingState({ isLoading: true, messageKey: 'loadingText_classifying' });
+      const mode = await classifyInput(inputText);
+      
+      setLoadingState({ isLoading: true, messageKey: 'loadingText_analyzing' });
+
+      let result: AnalysisResult;
+      switch (mode) {
+        case AnalysisMode.Household:
+          result = await analyzeProductFromText(inputText, language);
+          break;
+        case AnalysisMode.Food:
+          result = await analyzeFoodProductFromText(inputText, language);
+          break;
+        case AnalysisMode.Drug:
+          result = await analyzeDrugFromText(inputText, language);
+          break;
+        default:
+          throw new Error(`Unsupported analysis mode: ${mode}`);
+      }
+      
+      setLoadingState({ isLoading: true, messageKey: 'loadingText_generating' });
       setAnalysisResult(result);
+
     } catch (err) {
       console.error(err);
       const errorMessage = err instanceof Error ? err.message : String(err);
       setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      setLoadingState({ isLoading: false, messageKey: null });
     }
-  }, [language, analysisMode]);
+  }, [language]);
 
   const handleReset = () => {
     setAnalysisResult(null);
     setError(null);
-    setIsLoading(false);
+    setLoadingState({ isLoading: false, messageKey: null });
     setScannedImageUrls([]);
   };
 
@@ -72,11 +113,9 @@ const App: React.FC = () => {
     handleReset();
   };
 
-  const year = new Date().getFullYear();
-
   const renderContent = () => {
-    if (isLoading) {
-      return <Spinner language={language} />;
+    if (loadingState.isLoading) {
+      return <Spinner language={language} messageKey={loadingState.messageKey} />;
     }
     if (error) {
       return (
@@ -92,7 +131,7 @@ const App: React.FC = () => {
     if (analysisResult) {
       return <ResultDisplay result={analysisResult} onReset={handleReset} language={language} scannedImageUrls={scannedImageUrls} />;
     }
-    return <Scanner onScan={handleScan} isLoading={isLoading} language={language} analysisMode={analysisMode} setAnalysisMode={setAnalysisMode} />;
+    return <Scanner onScan={handleScan} isLoading={loadingState.isLoading} language={language} />;
   };
 
   return (
@@ -120,8 +159,8 @@ const App: React.FC = () => {
                 </button>
             </div>
             <div>
-                <p>{translations['en'].footerText.replace('{year}', year.toString())}</p>
-                <p>Contact: <a href="mailto:uplus50@gmail.com" className="text-brand-primary hover:underline">uplus50@gmail.com</a></p>
+                <p>{t.footerText}</p>
+                 <p>Contact: <a href="mailto:uplus50@gmail.com" className="text-brand-primary hover:underline">uplus50@gmail.com</a></p>
             </div>
         </footer>
       </div>

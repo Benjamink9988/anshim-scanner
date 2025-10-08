@@ -1,7 +1,7 @@
 {
   "name": "안심 스캐너 (Anshim Scanner)",
-  "description": "AI를 이용해 생활화학제품 및 식품 성분의 안전성과 영향을 분석하여 사용자가 안심하고 제품을 선택할 수 있도록 돕는 스캐너 앱입니다. 제품 라벨을 스캔하여 종합적인 안전 보고서를 받아보세요.",
-  "description_en": "An AI-powered scanner that helps users choose products with peace of mind by analyzing the safety and impact of ingredients in household products and food. Scan a label to get a comprehensive safety report.",
+  "description": "AI를 이용해 생활화학제품, 식품, 의약품 성분을 자동 분류하여 안전성과 환경 영향을 심층 분석하는 앱입니다. 제품 라벨을 스캔하여 사용자가 안심하고 제품을 선택하고, 올바르게 폐기할 수 있도록 종합 보고서를 제공합니다.",
+  "description_en": "An AI-powered scanner that automatically classifies and analyzes the safety and environmental impact of ingredients in household products, food, and medicines. Scan a label to get a comprehensive report, helping users make informed choices and dispose of products responsibly.",
   "requestFramePermissions": [
     "camera"
   ]

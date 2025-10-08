@@ -37,7 +37,8 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({ isOpen, onClose, lang
                 <div className="text-sm text-slate-600 space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                     <p><strong>{t.disclaimerContent1.split(':')[0]}:</strong> {t.disclaimerContent1.split(':').slice(1).join(':')}</p>
                     <p><strong>{t.disclaimerContent2.split(':')[0]}:</strong> {t.disclaimerContent2.split(':').slice(1).join(':')}</p>
-                    <p><strong>{t.disclaimerContent3.split(':')[0]}:</strong> {t.disclaimerContent3.split(':').slice(1).join(':')}</p>
+                    <p className="font-bold text-red-600">{t.disclaimerContent3}</p>
+                    <p><strong>{t.disclaimerContent4.split(':')[0]}:</strong> {t.disclaimerContent4.split(':').slice(1).join(':')}</p>
                 </div>
 
                 <div className="text-right">
