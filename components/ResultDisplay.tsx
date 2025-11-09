@@ -6,7 +6,7 @@ import { refineAnalysis } from '../services/geminiService';
 import {
     AlertTriangleIcon, RecycleIcon, RefreshCwIcon, ClipboardListIcon, FileTextIcon,
     StarIcon, LeafIcon, Trash2Icon, UserCheckIcon, InfantIcon, PregnantIcon,
-    PetIcon, RespiratoryIcon, ImageIcon, CopyIcon, UtensilsCrossedIcon, PillIcon, BeakerIcon, InfoIcon
+    PetIcon, RespiratoryIcon, ImageIcon, CopyIcon, UtensilsCrossedIcon, PillIcon, BeakerIcon, InfoIcon, DatabaseIcon
 } from './Icons';
 import html2canvas from 'html2canvas';
 import Gauge from './Gauge';
@@ -48,6 +48,34 @@ const VulnerableModeButton: React.FC<{
             <Icon className="w-6 h-6 mb-1" />
             <span className="font-semibold">{label}</span>
         </button>
+    );
+};
+
+const DataSourceInfo: React.FC<{ language: 'en' | 'ko' }> = ({ language }) => {
+    const t = translations[language];
+    const sources = [
+        t.ministryOfEnvironment,
+        t.mfds,
+        t.echa,
+        t.pubchem,
+    ];
+    return (
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200">
+            <h3 className="text-lg font-bold text-slate-700 mb-3 flex items-center">
+                <DatabaseIcon className="w-6 h-6 text-slate-500" />
+                <span className="ml-2">{t.dataSourceTitle}</span>
+            </h3>
+            <div className="space-y-3 text-sm text-slate-600">
+                <p className="text-sm text-slate-600 mb-4">{t.dataSourceContent}</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                    {sources.map((source, i) => (
+                        <div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <p className="font-semibold text-xs text-slate-700">{source}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -501,6 +529,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset, language
                         </Section>
                         </>
                     )}
+                    <DataSourceInfo language={language} />
                 </div>
             </div>
 

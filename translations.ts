@@ -24,7 +24,18 @@ export const translations = {
     userManualSections: [
       {
         title: '1. What is Anshim Scanner? (Features & Purpose)',
-        content: "Anshim Scanner is an app that uses AI to analyze complex product ingredient lists, providing users with an easy-to-understand 'Risk Report'.\n\nIt was created to resolve information asymmetry between consumers and companies, and to address environmental pollution from improper product disposal. This app is an entry for the 'AI Idea Contest to Solve Social Problems in Environment/Safety/Health', hosted by the Forest and Sharing Foundation and The Hankyoreh newspaper.\n\n[Key Features]\n- Automatic Classification: Intelligently identifies products as Household, Food, or Medicine.\n- Comprehensive Analysis: Assesses risks to both human health and the environment.\n- Refined Analysis: Re-evaluates risks for vulnerable groups like infants or pregnant individuals.\n- Safe Disposal Guide: Provides instructions for proper disposal to prevent pollution."
+        content: `Anshim Scanner is an app that uses AI to analyze complex product ingredient lists, providing users with an easy-to-understand 'Risk Report'. It was created for the 'AI Idea Contest to Solve Social Problems in Environment/Safety/Health'.
+
+[Anshim Scanner's Unique Strengths]
+Unlike general chatbots that summarize freely, Anshim Scanner operates as a specialized analysis tool.
+- Fact-Based Analysis: It references reliable public databases (e.g., ECHA, PubChem) instead of broad internet search results.
+- Hallucination Prevention: The AI is forced to generate results in a strict, predefined data format (JSON Schema). This prevents it from creating false information and ensures consistent, verifiable reports.
+
+[Key Features]
+- Automatic Classification: Intelligently identifies products as Household, Food, or Medicine.
+- Comprehensive Analysis: Assesses risks to both human health and the environment.
+- Refined Analysis: Re-evaluates risks for vulnerable groups like infants or pregnant individuals.
+- Safe Disposal Guide: Provides instructions for proper disposal to prevent pollution.`
       },
       {
         title: '2. How to Use (Product Analysis Steps)',
@@ -181,6 +192,14 @@ A. The AI classifies based on the ingredient list, but errors can occasionally o
     riskScoreMeaning: 'Risk Score: Indicates potential risk to human health (0-100). A higher score requires more caution.',
     ecoScoreMeaning: 'Eco-Risk Score: Indicates potential environmental impact, including improper disposal (0-100). A higher score means greater harm.',
 
+    // NEW: Data Source Section
+    dataSourceTitle: 'Data-Driven Reliability',
+    dataSourceContent: 'To ensure accuracy and prevent AI "hallucinations," this analysis is not based on general web searches. Instead, it references data from the following public and specialized databases:',
+    ministryOfEnvironment: 'Ministry of Environment (S. Korea)',
+    mfds: 'Ministry of Food and Drug Safety (S. Korea)',
+    echa: 'European Chemicals Agency (ECHA)',
+    pubchem: 'PubChem (U.S. National Library of Medicine)',
+
 
     // Definitions for tooltips
     definitions: {
@@ -217,7 +236,13 @@ A. The AI classifies based on the ingredient list, but errors can occasionally o
     userManualSections: [
       {
         title: '1. 안심 스캐너란? (기능 및 개발 목적)',
-        content: `안심 스캐너는 복잡한 제품 성분표를 AI로 분석하여 소비자가 이해하기 쉬운 '위험도 보고서'를 제공하는 앱입니다. 소비자와 기업 간의 정보 불균형을 해소하고, 부적절한 제품 폐기로 인한 환경오염 문제를 해결하는 데 기여하고자 '(재)숲과나눔과 한겨레가 주최하는 AI를 활용해 환경/안전/보건 분야의 사회문제 해결 아이디어 공모전' 출품작으로 제작하였습니다.
+        content: `안심 스캐너는 복잡한 제품 성분표를 AI로 분석하여 소비자가 이해하기 쉬운 '위험도 보고서'를 제공하는 앱입니다. 본 앱은 'AI를 활용해 환경/안전/보건 분야의 사회문제 해결 아이디어 공모전' 출품작으로 제작되었습니다.
+
+[안심 스캐너만의 차별점]
+단순히 텍스트를 요약하는 일반 챗봇과 달리, 안심 스캐너는 특화된 분석 도구로 동작합니다.
+- 사실 기반 분석: 광범위한 인터넷 검색 결과가 아닌, 신뢰도 높은 공공 데이터베이스(예: ECHA, PubChem)를 우선적으로 참조합니다.
+- 할루시네이션 방지: AI가 미리 정의된 엄격한 데이터 형식(JSON 스키마)에 맞춰 결과를 생성하도록 강제합니다. 이를 통해 AI가 잘못된 정보를 지어내는 것을 방지하고, 일관성 있고 검증 가능한 보고서를 보장합니다.
+
 [주요 기능]
 - 제품 유형 자동 분류 (생활화학제품, 식품, 의약품)
 - 인체 및 환경 유해성 종합 분석
@@ -392,6 +417,14 @@ A. AI가 성분 목록을 기반으로 분류하지만, 간혹 오류가 발생�
     scoreMeaningGeneric: '건강, 안전, 환경적 위험 수준을 나타내는 0-100점 척도입니다. 점수가 높을수록 위험도가 높습니다.',
     riskScoreMeaning: '위험도 점수: 인체 건강에 대한 잠재적 위험도를 나타냅니다 (0-100). 점수가 높을수록 더 많은 주의가 필요합니다.',
     ecoScoreMeaning: '환경 위험 점수: 부적절한 폐기를 포함한 잠재적 환경 영향을 나타냅니다 (0-100). 점수가 높을수록 환경에 더 해롭습니다.',
+
+    // NEW: Data Source Section
+    dataSourceTitle: '신뢰도 높은 데이터 기반 분석',
+    dataSourceContent: 'AI의 "할루시네이션(환각)" 현상을 방지하고 분석의 정확도를 높이기 위해, 본 분석은 일반적인 웹 검색이 아닌 아래와 같은 공신력 있는 전문 데이터베이스를 참조하여 생성됩니다:',
+    ministryOfEnvironment: '대한민국 환경부',
+    mfds: '대한민국 식품의약품안전처',
+    echa: '유럽화학물질청 (ECHA)',
+    pubchem: 'PubChem (미국 국립의학도서관)',
 
     // Definitions for tooltips
     definitions: {
