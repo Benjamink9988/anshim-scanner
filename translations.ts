@@ -1,12 +1,12 @@
 export const translations = {
   en: {
     // App.tsx
-    headerTitle: 'Anshim Scanner',
+    headerTitle: 'Anshim Scanner v 2.0',
     toggleToKorean: '한국어로 보기',
     toggleToEnglish: 'View in English',
     analysisFailedTitle: 'Analysis Failed',
     tryAgainButton: 'Try Again',
-    footerText: '© 2025 Anshim Scanner. An entry for the AI Idea Contest to Solve Social Problems in Environment/Safety/Health hosted by the Forest and Sharing Foundation and The Hankyoreh.',
+    footerText: '© 2025 Anshim Scanner v 2.0. An entry for the AI Idea Contest to Solve Social Problems in Environment/Safety/Health hosted by the Forest and Sharing Foundation and The Hankyoreh.',
     userManualLink: 'User Manual',
     legalDisclaimerLink: 'Legal Disclaimer',
     
@@ -39,7 +39,7 @@ Unlike general chatbots that summarize freely, Anshim Scanner operates as a spec
       },
       {
         title: '2. How to Use (Product Analysis Steps)',
-        content: "1. Prepare Ingredient Info\n- Take a clear photo of the entire ingredient list or copy the text.\n- Tip: Better lighting and clearer text improve AI recognition. You can upload multiple images for long ingredient lists.\n\n2. Input Information\n- Attach photos using 'Upload Image(s)' or 'Take Photo'.\n- Alternatively, paste the text into the 'Enter Ingredients Manually' field.\n\n3. Start Analysis\n- Click the 'Analyze' button.\n- The AI will automatically determine the product type and begin an in-depth analysis, which typically takes 15-30 seconds."
+        content: "1. Prepare Ingredient Info\n- Take a clear photo of the entire ingredient list or copy the text.\n- Tip: Better lighting and clearer text improve AI recognition. You can upload multiple images for long ingredient lists.\n\n2. Input Information\n- Attach photos using 'Upload Image(s)' or 'Take Photo'.\n- Alternatively, paste the text into the 'Enter Ingredients Manually' field.\n\n3. Start Analysis\n- Click the 'Analyze' button.\n- The AI will automatically determine the product type and begin an-depth analysis, which typically takes 15-30 seconds."
       },
       {
         title: '3. Reading the Analysis Report',
@@ -213,12 +213,12 @@ A. The AI classifies based on the ingredient list, but errors can occasionally o
   },
   ko: {
     // App.tsx
-    headerTitle: '안심 스캐너',
+    headerTitle: '안심 스캐너 v 2.0',
     toggleToKorean: '한국어로 보기',
     toggleToEnglish: 'View in English',
     analysisFailedTitle: '분석 실패',
     tryAgainButton: '다시 시도',
-    footerText: '© 2025 안심 스캐너. (재)숲과나눔과 한겨레 주최 AI 활용 환경/안전/보건 분야 사회문제 해결 아이디어 공모전 출품작.',
+    footerText: '© 2025 안심 스캐너 v 2.0. (재)숲과나눔과 한겨레 주최 AI 활용 환경/안전/보건 분야 사회문제 해결 아이디어 공모전 출품작.',
     userManualLink: '사용자 매뉴얼',
     legalDisclaimerLink: '법적 고지',
 

@@ -221,7 +221,7 @@ const getLangInstruction = (language: 'en' | 'ko') => language === 'ko'
 // New classification service
 export const classifyInput = async (text: string): Promise<AnalysisMode> => {
     try {
-        const systemInstruction = "You are a product classification expert. Analyze the provided text from a product label and classify it into one of three categories: 'household' (for cleaners, soaps, detergents, etc.), 'food' (for edible items), or 'drug' (for medicines, pharmaceuticals, ointments). Respond with ONLY the lowercase category name and nothing else.";
+        const systemInstruction = "You are a product classification expert. Analyze the provided text from a product label and classify it into one of three categories: 'household' (for cleaners, soaps, detergents, etc.), 'food' (for edible items), or 'drug' (for medicines, pharmaceuticals, ointments). If the text is nonsensical or cannot be classified, respond with 'household' as a safe default. Respond with ONLY the lowercase category name and nothing else.";
         
         const response: GenerateContentResponse = await ai.models.generateContent({
             model: GEMINI_MODEL,
@@ -281,7 +281,6 @@ const performAnalysis = async (
             config: {
                 responseMimeType: "application/json",
                 responseSchema: schema,
-                systemInstruction,
             },
         });
 
@@ -297,19 +296,42 @@ const performAnalysis = async (
 };
 
 export const analyzeProductFromText = (text: string, lang: 'en' | 'ko'): Promise<ProductAnalysis> => {
-    const systemInstruction = `You are an expert household product safety and environmental analyst. Your primary goal is to assess RISK. A high score means HIGH RISK. Analyze ingredients from user text, including their chemical formula where applicable. Crucially, evaluate the environmental impact of improper disposal (e.g., pouring down the drain). If the overall risk is 'Caution' or 'High Risk', recommend 2-3 safer alternative products. Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
+    const systemInstruction = `You are an expert household product safety and environmental analyst. Your primary goal is to assess RISK based *only* on the provided text. A high score means HIGH RISK.
+**CRITICAL RULE:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients, you MUST indicate this in your response. Set the product.name to "Analysis Failed" and the analysis.summary to explain that the provided text was not a valid list of ingredients for analysis. Do not attempt to analyze gibberish or unrelated text.
+For valid ingredient lists:
+- Analyze ingredients from user text. If an ingredient name is misspelled or ambiguous, note this in the 'analysis.notes' field. Do not guess the correct ingredient.
+- Infer product name and brand only if explicitly mentioned. Otherwise, use placeholders like "User-provided ingredients" for the name and "N/A" for the brand.
+- Crucially, evaluate the environmental impact of improper disposal.
+- If the overall risk is 'Caution' or 'High Risk', recommend 2-3 safer alternative products.
+- Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
     const userPrompt = `Analyze the following ingredients list for a household product. Focus on user safety and environmental risk, including from improper disposal:\n\n${text}`;
     return performAnalysis(userPrompt, householdResponseSchema, systemInstruction);
 };
 
 export const analyzeFoodProductFromText = (text: string, lang: 'en' | 'ko'): Promise<FoodProductAnalysis> => {
-    const systemInstruction = `You are a food safety expert. Analyze the provided food ingredients. Assess risks from additives and identify allergens. Provide a nutritional overview. If the overall risk is 'Caution' or 'High Risk', recommend 2-3 safer alternative products. Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
+    const systemInstruction = `You are a food safety expert. Your analysis must be based *only* on the provided text.
+**CRITICAL RULE:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients for a food product, you MUST indicate this. Set the product.name to "Analysis Failed" and the analysis.summary to explain that the provided text was not a valid list of ingredients for analysis. Do not attempt to analyze non-food items or gibberish.
+For valid ingredient lists:
+- Analyze the provided food ingredients. If an ingredient is ambiguous, note this in the 'analysis.notes' field. Do not guess.
+- Infer product name and brand only if explicitly mentioned. Otherwise, use placeholders.
+- Assess risks from additives and identify allergens.
+- Provide a nutritional overview.
+- If the overall risk is 'Caution' or 'High Risk', recommend 2-3 safer alternative products.
+- Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
     const userPrompt = `Analyze the following ingredients list for a food product:\n\n${text}`;
     return performAnalysis(userPrompt, foodResponseSchema, systemInstruction);
 };
 
 export const analyzeDrugFromText = (text: string, lang: 'en' | 'ko'): Promise<DrugProductAnalysis> => {
-    const systemInstruction = `You are an expert pharmaceutical analyst. Your analysis is for informational purposes ONLY and is NOT medical advice. Assess risks based on active ingredients, side effects, and contraindications. CRITICALLY, provide safe disposal instructions to prevent environmental contamination. The summary MUST start with a disclaimer. Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
+    const systemInstruction = `You are an expert pharmaceutical analyst. Your analysis is for informational purposes ONLY, is NOT medical advice, and must be based *only* on the provided text.
+**CRITICAL RULE:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients for a drug product, you MUST indicate this. Set the product.name to "Analysis Failed" and the analysis.summary to "Analysis failed because the provided text was not a valid list of ingredients. This is not medical advice. Consult a doctor or pharmacist." Do not analyze non-drug items.
+For valid ingredient lists:
+- Analyze ingredients from user text. If an ingredient name is misspelled or ambiguous, note this in the 'analysis.notes' field. Do not guess the correct ingredient.
+- Infer product name and brand only if explicitly mentioned. Otherwise, use placeholders like "User-provided ingredients" for the name and "N/A" for the brand.
+- Assess risks based on active ingredients, side effects, and contraindications.
+- CRITICALLY, provide safe disposal instructions.
+- The summary MUST start with a disclaimer.
+- Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
     const userPrompt = `Analyze the following ingredients list for a medicinal drug. Provide a risk assessment and safe disposal instructions:\n\n${text}`;
     return performAnalysis(userPrompt, drugResponseSchema, systemInstruction);
 };
@@ -323,7 +345,7 @@ export const refineAnalysis = async (
         const t = translations[language];
         const translatedMode = t.vulnerableModes[vulnerableMode];
 
-        const systemInstruction = `You are an expert household product safety analyst. Re-evaluate an existing analysis for a specific vulnerable group. A higher score means a higher risk. Adjust the riskScore, grade, summary, and ingredient risks to reflect heightened sensitivity. Ensure the chemical formula for each ingredient is included if available. The environmental analysis and alternatives should remain unchanged. Return a complete, updated JSON response. ${getLangInstruction(language)}`;
+        const systemInstruction = `You are an expert household product safety analyst. Re-evaluate an existing analysis for a specific vulnerable group based *only* on the provided JSON. A higher score means a higher risk. Adjust the riskScore, grade, summary, and ingredient risks to reflect heightened sensitivity. If any part of the original analysis is unclear, preserve it as-is and add a note in the 'analysis.notes' field. Do not add new ingredients or invent information. The environmental analysis and alternatives should remain unchanged. Return a complete, updated JSON response. ${getLangInstruction(language)}`;
         
         const userPrompt = `Re-evaluate this analysis for the [${translatedMode}] group. Adjust risks accordingly. Original Analysis:\n${JSON.stringify(currentAnalysis)}`;
 

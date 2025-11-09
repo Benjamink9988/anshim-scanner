@@ -1,6 +1,6 @@
-## 안심 스캐너 (Anshim Scanner) ##
+## 안심 스캐너 v 2.0 (Anshim Scanner v 2.0) ##
 
-'안심 스캐너'는 Google Gemini AI를 활용하여 생활화학제품, 식품, 의약품의 성분을 자동으로 분류하고 안전성과 환경 영향을 심층 분석하는 웹 애플리케이션입니다. 제품 라벨을 스캔하여 사용자가 정보에 기반한 현명한 결정을 내릴 수 있도록 돕고, 모두가 안심하고 제품을 사용할 수 있는 환경을 만드는 것을 목표로 합니다.
+'안심 스캐너 v 2.0'은 Google Gemini AI를 활용하여 생활화학제품, 식품, 의약품의 성분을 자동으로 분류하고 안전성과 환경 영향을 심층 분석하는 웹 애플리케이션입니다. 제품 라벨을 스캔하여 사용자가 정보에 기반한 현명한 결정을 내릴 수 있도록 돕고, 모두가 안심하고 제품을 사용할 수 있는 환경을 만드는 것을 목표로 합니다.
 
 본 프로젝트는 'AI를 활용한 환경/안전/보건 분야 사회문제 해결'을 주제로 한 공모전 출품작입니다.
 
@@ -49,7 +49,7 @@
 --------------------------------------------------
 ### English Summary
 --------------------------------------------------
-Project Name: Anshim Scanner
+Project Name: Anshim Scanner v 2.0
 
 Description: A web application that uses Google Gemini AI to automatically classify and analyze the safety and environmental impact of household products, food, and medicines. This project was created for a competition on "Solving Social Issues with AI."
 
