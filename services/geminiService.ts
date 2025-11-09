@@ -250,11 +250,19 @@ export const classifyInput = async (text: string): Promise<AnalysisMode> => {
 // New OCR helper
 export const extractTextFromImage = async (image: { data: string; mimeType: string }): Promise<string> => {
     try {
+        const ocrPrompt = `You are an expert OCR engine specializing in analyzing images of product labels for ingredients lists. Your task is to extract text with the highest possible accuracy.
+Follow these steps:
+1. Analyze the image geometry. If there is any perspective distortion, warping from a curved surface, or skew, mentally correct it before transcription.
+2. Identify and compensate for uneven lighting or shadows to improve character recognition.
+3. Transcribe ONLY the text that appears to be part of the ingredients list, chemical names, or nutritional/drug facts. Ignore marketing text, logos, and barcodes.
+4. Pay special attention to complex chemical, medical, or food-related terminology. Use your contextual knowledge to correct common OCR errors (e.g., 'l' vs '1', 'O' vs '0').
+Output the cleaned, extracted text as a single block.`;
+
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
             contents: {
                 parts: [
-                    { text: "Extract all text from this image." },
+                    { text: ocrPrompt },
                     { inlineData: { data: image.data, mimeType: image.mimeType } }
                 ]
             }
