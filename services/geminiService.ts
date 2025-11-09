@@ -287,6 +287,7 @@ const performAnalysis = async (
             model,
             contents,
             config: {
+                systemInstruction: systemInstruction,
                 responseMimeType: "application/json",
                 responseSchema: schema,
             },
@@ -305,10 +306,13 @@ const performAnalysis = async (
 
 export const analyzeProductFromText = (text: string, lang: 'en' | 'ko'): Promise<ProductAnalysis> => {
     const systemInstruction = `You are an expert household product safety and environmental analyst. Your primary goal is to assess RISK based *only* on the provided text. A high score means HIGH RISK.
-**CRITICAL RULE:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients, you MUST indicate this in your response. Set the product.name to "Analysis Failed" and the analysis.summary to explain that the provided text was not a valid list of ingredients for analysis. Do not attempt to analyze gibberish or unrelated text.
+**CRITICAL RULES:**
+1.  **NEVER INVENT INFORMATION.** Your analysis must be derived *exclusively* from the text provided by the user.
+2.  **PRODUCT & BRAND IDENTIFICATION:** Identify the product name and brand *only if they are explicitly written* in the provided text. If they are not present, you MUST use "사용자 제공 성분" (or "User-provided ingredients") for the product name and "정보 없음" (or "N/A") for the brand. Do not guess, infer, or use external knowledge to identify the product.
+3.  **VALIDITY CHECK:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients, you MUST indicate this. Set the product.name to "분석 실패" (or "Analysis Failed") and the analysis.summary to explain that the provided text was not a valid list of ingredients for analysis.
+
 For valid ingredient lists:
 - Analyze ingredients from user text. If an ingredient name is misspelled or ambiguous, note this in the 'analysis.notes' field. Do not guess the correct ingredient.
-- Infer product name and brand only if explicitly mentioned. Otherwise, use placeholders like "User-provided ingredients" for the name and "N/A" for the brand.
 - Crucially, evaluate the environmental impact of improper disposal.
 - If the overall risk is 'Caution' or 'High Risk', recommend 2-3 safer alternative products.
 - Return a detailed analysis in JSON adhering to the schema. ${getLangInstruction(lang)}`;
@@ -318,10 +322,13 @@ For valid ingredient lists:
 
 export const analyzeFoodProductFromText = (text: string, lang: 'en' | 'ko'): Promise<FoodProductAnalysis> => {
     const systemInstruction = `You are a food safety expert. Your analysis must be based *only* on the provided text.
-**CRITICAL RULE:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients for a food product, you MUST indicate this. Set the product.name to "Analysis Failed" and the analysis.summary to explain that the provided text was not a valid list of ingredients for analysis. Do not attempt to analyze non-food items or gibberish.
+**CRITICAL RULES:**
+1.  **NEVER INVENT INFORMATION.** Your analysis must be derived *exclusively* from the text provided by the user.
+2.  **PRODUCT & BRAND IDENTIFICATION:** Identify the product name and brand *only if they are explicitly written* in the provided text. If they are not present, you MUST use "사용자 제공 성분" (or "User-provided ingredients") for the product name and "정보 없음" (or "N/A") for the brand. Do not guess or infer.
+3.  **VALIDITY CHECK:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients for a food product, you MUST indicate this. Set the product.name to "분석 실패" (or "Analysis Failed") and the analysis.summary to explain that the provided text was not a valid list of ingredients for analysis.
+
 For valid ingredient lists:
 - Analyze the provided food ingredients. If an ingredient is ambiguous, note this in the 'analysis.notes' field. Do not guess.
-- Infer product name and brand only if explicitly mentioned. Otherwise, use placeholders.
 - Assess risks from additives and identify allergens.
 - Provide a nutritional overview.
 - If the overall risk is 'Caution' or 'High Risk', recommend 2-3 safer alternative products.
@@ -332,10 +339,13 @@ For valid ingredient lists:
 
 export const analyzeDrugFromText = (text: string, lang: 'en' | 'ko'): Promise<DrugProductAnalysis> => {
     const systemInstruction = `You are an expert pharmaceutical analyst. Your analysis is for informational purposes ONLY, is NOT medical advice, and must be based *only* on the provided text.
-**CRITICAL RULE:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients for a drug product, you MUST indicate this. Set the product.name to "Analysis Failed" and the analysis.summary to "Analysis failed because the provided text was not a valid list of ingredients. This is not medical advice. Consult a doctor or pharmacist." Do not analyze non-drug items.
+**CRITICAL RULES:**
+1.  **NEVER INVENT INFORMATION.** Your analysis must be derived *exclusively* from the text provided by the user.
+2.  **PRODUCT & BRAND IDENTIFICATION:** Identify the product name and brand *only if they are explicitly written* in the provided text. If they are not present, you MUST use "사용자 제공 성분" (or "User-provided ingredients") for the product name and "정보 없음" (or "N/A") for the brand. Do not guess or infer.
+3.  **VALIDITY CHECK:** If the user's text is unclear, insufficient, or does not appear to be a list of ingredients for a drug product, you MUST indicate this. Set the product.name to "분석 실패" (or "Analysis Failed") and the analysis.summary to "분석 실패: 제공된 텍스트가 유효한 성분 목록이 아닙니다. 이 정보는 의료 자문이 아니므로, 의사 또는 약사와 상담하십시오." (or "Analysis failed because the provided text was not a valid list of ingredients. This is not medical advice. Consult a doctor or pharmacist.").
+
 For valid ingredient lists:
 - Analyze ingredients from user text. If an ingredient name is misspelled or ambiguous, note this in the 'analysis.notes' field. Do not guess the correct ingredient.
-- Infer product name and brand only if explicitly mentioned. Otherwise, use placeholders like "User-provided ingredients" for the name and "N/A" for the brand.
 - Assess risks based on active ingredients, side effects, and contraindications.
 - CRITICALLY, provide safe disposal instructions.
 - The summary MUST start with a disclaimer.

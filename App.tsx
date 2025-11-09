@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Scanner from './components/Scanner';
 import ResultDisplay from './components/ResultDisplay';
 import Spinner from './components/Spinner';
@@ -28,6 +28,10 @@ const App: React.FC = () => {
   const [scannedImageUrls, setScannedImageUrls] = useState<string[]>([]);
   const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
   const [isUserManualVisible, setIsUserManualVisible] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const t = translations[language];
 
