@@ -32,7 +32,18 @@ export const translations = {
       },
       {
         title: '3. Reading the Analysis Report',
-        content: "Once the analysis is complete, a customized report is generated with the following sections:\n\n[Common Sections]\n- Risk Score: A 0-100 scale where a higher score indicates higher potential risk.\n- Key Findings: A summary of the overall risk, key ingredients, and environmental impact.\n\n[Details by Product Type]\n- Household Products: Details harmful ingredients, environmental impact, and safe disposal methods.\n- Food: Provides information on food additives and potential allergens.\n- Medicine: Explains active ingredients, side effects, contraindications, and safe disposal guidance.\n\n[Term Definitions]\n- Click the (i) icon next to any technical term for a simple explanation."
+        content: `The report is broadly divided into 'Key Findings' and 'Detailed Analysis'.
+
+[Key Findings]
+This section provides an at-a-glance overview of the product's core risks, featuring the 'Risk Score' gauge and the AI's overall summary.
+
+[Detailed Analysis by Product Type]
+- Household Products: Delves into ingredients that may be harmful to humans, the potential for environmental pollution, and safe disposal methods.
+- Food: Informs you about potential allergens, the purpose and safety of approved food additives that may require caution, and an overall nutritional grade.
+- Medicine: Clearly explains the active ingredients that produce the drug's effect, potential side effects (both common and rare), and 'contraindications'—situations where the drug should not be used. (Always remember this is not medical advice.)
+
+[Term Definitions]
+For difficult technical terms like 'Endocrine Disruptor' or 'ADI' in the report, you can find simple explanations within the app's tooltips, making complex information accessible.`
       },
       {
         title: '4. Utilizing the Report & Special Features',
@@ -41,6 +52,21 @@ export const translations = {
       {
         title: '5. Expected Effects & Social Value',
         content: "- Consumer Empowerment: Enables consumers to easily understand product information and make safer choices.\n- Promoting Corporate Responsibility: Encourages companies to develop safer, eco-friendly products in response to informed consumer demand.\n- Environmental Protection: Helps prevent soil and water pollution by providing proper disposal guidance."
+      },
+      {
+        title: '6. Troubleshooting (FAQ)',
+        content: `Q. The analysis fails or takes too long.
+A. Please check your internet connection. If the problem persists, try taking a clearer picture or try again after a short while. The AI server may be experiencing temporary high traffic.
+
+Q. Text is not detected from the image.
+A. Recognition can fail if the photo is blurry, the lighting is poor, or there are shadows on the text. Try taking a clear photo in a well-lit area, ensuring the entire ingredient list is visible. You can also upload multiple images to cover the full list.
+
+Q. The product type (Household/Food/Drug) was classified incorrectly.
+A. The AI classifies based on the ingredient list, but errors can occasionally occur. In this case, manually entering the ingredient text can lead to a more accurate analysis.`
+      },
+      {
+        title: '7. Privacy and Data',
+        content: `Anshim Scanner values your privacy. Uploaded images and text are used solely as input for the AI model to perform the analysis and are not stored on our servers. All data is deleted immediately after the analysis is complete, so you can use the app with peace of mind.`
       }
     ],
 
@@ -212,16 +238,18 @@ export const translations = {
       },
       {
         title: '3. 분석 보고서 상세히 보기',
-        content: `AI 분석이 완료되면 다음과 같은 맞춤형 보고서가 생성됩니다.
-[공통 항목]
-- 위험도 점수: 0~100점 척도로, 점수가 높을수록 잠재적 위험이 높음을 의미합니다.
-- 주요 분석 결과: 전체적인 위험도, 핵심 성분, 환경 영향 등을 요약합니다.
-[제품 유형별 상세 정보]
-- 생활화학제품: 유해 가능 성분, 환경 영향 점수, 올바른 폐기 방법을 안내합니다.
-- 식품: 주요 식품첨가물의 안전성 및 알레르기 유발 가능 물질 정보를 제공합니다.
-- 의약품: 주성분의 효능, 부작용, 금기사항 및 안전한 폐기 방법을 안내합니다.
+        content: `보고서는 크게 '주요 분석 결과'와 '상세 분석' 두 부분으로 나뉩니다.
+
+[주요 분석 결과]
+제품의 핵심 위험도를 한눈에 파악할 수 있도록 '위험도 점수' 게이지와 AI의 종합적인 요약평가를 보여줍니다.
+
+[제품 유형별 상세 분석]
+- 생활화학제품: 인체에 유해할 수 있는 성분, 환경오염 유발 가능성, 안전한 폐기 방법을 심층적으로 다룹니다.
+- 식품: 알레르기를 유발할 수 있는 성분, 허가되었지만 주의가 필요한 식품첨가물의 역할과 안전성, 전반적인 영양 등급을 알려줍니다.
+- 의약품: 약의 효과를 내는 주성분, 흔하거나 드물게 나타날 수 있는 부작용, 특정 질환이나 다른 약과 함께 사용하면 안 되는 '금기사항' 등을 명확히 설명합니다. (의료 자문이 아님을 항상 기억하세요.)
+
 [용어 설명]
-- 보고서 내의 전문 용어 옆 (i) 아이콘을 클릭하면 쉬운 설명을 볼 수 있습니다.`
+보고서에 등장하는 '내분비계 교란물질', 'ADI' 등 어려운 전문 용어는 앱 내의 툴팁을 통해 쉬운 설명을 바로 확인할 수 있어 복잡한 정보도 쉽게 이해할 수 있습니다.`
       },
       {
         title: '4. 보고서 활용 및 특수 기능',
@@ -235,6 +263,21 @@ export const translations = {
         content: `- 소비자 주권 강화: 제품 정보를 쉽게 파악하여 안전한 제품을 선택할 권리를 보장합니다.
 - 기업의 사회적 책임 촉진: 소비자의 현명한 선택을 통해 기업이 더 안전하고 친환경적인 제품을 개발하도록 유도합니다.
 - 환경 보호 기여: 올바른 폐기 방법을 안내하여 토양 및 수질 오염 예방에 기여합니다.`
+      },
+      {
+        title: '6. 문제 해결 (FAQ)',
+        content: `Q. 분석이 실패하거나 너무 오래 걸려요.
+A. 인터넷 연결 상태를 확인해 주세요. 문제가 지속되면 이미지를 더 선명하게 다시 찍거나, 잠시 후 다시 시도해 주세요. AI 서버에 일시적인 부하가 발생했을 수 있습니다.
+
+Q. 이미지에서 텍스트를 인식하지 못해요.
+A. 사진이 흔들리거나, 조명이 어둡거나, 글자에 그림자가 지면 인식률이 떨어질 수 있습니다. 밝은 곳에서 제품 전체 성분표가 잘 보이도록 선명하게 촬영해 보세요. 여러 장의 사진을 업로드하여 전체 내용을 포함할 수도 있습니다.
+
+Q. 제품 유형(생활화학제품/식품/의약품)이 잘못 분류되었어요.
+A. AI가 성분 목록을 기반으로 분류하지만, 간혹 오류가 발생할 수 있습니다. 이 경우, 성분 텍스트를 직접 입력하여 분석하면 더 정확한 결과를 얻을 수 있습니다.`
+      },
+      {
+        title: '7. 개인정보 및 데이터 처리',
+        content: `안심 스캐너는 사용자의 개인정보를 소중히 생각합니다. 업로드된 이미지와 텍스트는 오직 제품 분석을 위한 AI 모델의 입력값으로만 사용되며, 서버에 저장되지 않습니다. 모든 데이터는 분석 직후 삭제되므로 안심하고 사용하셔도 좋습니다.`
       }
     ],
 
